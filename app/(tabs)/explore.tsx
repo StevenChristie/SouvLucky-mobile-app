@@ -1,11 +1,28 @@
-import React, { useRef } from 'react';
-import { FlatList, Image, Platform, SafeAreaView, SectionList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useRef, useState } from 'react';
+import {
+  Dimensions,
+  Image,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  SectionList,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 
+const { width } = Dimensions.get('window');
+
+// 1. Interfaces for your data
 interface MenuItem {
   name: string;
   price: string;
   desc?: string;
-  image?: any; // Made optional to handle items without photos
+  image?: any; 
 }
 
 interface MenuSection {
@@ -13,6 +30,7 @@ interface MenuSection {
   data: MenuItem[];
 }
 
+// 2. Complete MENU_DATA with verified filenames
 const MENU_DATA: MenuSection[] = [
   { 
     title: 'Meze & Dips', 
@@ -27,8 +45,8 @@ const MENU_DATA: MenuSection[] = [
       { name: 'Pita Bread', price: 'R 18.00', image: require('../../assets/images/Pita-Bread.png') },
       { name: 'Tzatziki', price: 'R 42.00', image: require('../../assets/images/Tzatziki.png') },
       { name: 'Hummus', price: 'R 42.00', image: require('../../assets/images/Hummus.png') },
-      { name: 'Tarama (Fish Roe)', price: 'R 42.00' }, // No image
-      { name: 'Tirokafteri (Chilli Feta)', price: 'R 42.00' } // No image
+      { name: 'Tarama (Fish Roe)', price: 'R 42.00' },
+      { name: 'Tirokafteri (Chilli Feta)', price: 'R 42.00' }
     ] 
   },
   { 
@@ -119,40 +137,91 @@ const MENU_DATA: MenuSection[] = [
 
 export default function MenuScreen() {
   const sectionListRef = useRef<SectionList>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
+  // 3. FIXED SCROLL LOGIC
   const scrollToSection = (index: number) => {
-    sectionListRef.current?.scrollToLocation({
-      sectionIndex: index,
-      itemIndex: 0,
-      animated: true,
-      viewOffset: Platform.OS === 'ios' ? 0 : 40,
-    });
+    // A: Dismiss the Modal
+    setModalVisible(false);
+    
+    // B: Wait for the Modal to disappear, then Jump to Section
+    // Using a 300ms timeout provides enough time for the Modal to close smoothly
+    setTimeout(() => {
+      sectionListRef.current?.scrollToLocation({
+        sectionIndex: index,
+        itemIndex: 0,
+        animated: true,
+        // viewOffset keeps the sticky header from blocking the first item
+        viewOffset: Platform.OS === 'ios' ? 0 : 30, 
+      });
+    }, 300);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
+      
+      {/* HEADER SECTION */}
       <View style={styles.headerContainer}>
         <Text style={styles.mainTitle}>SouvLucky Menu</Text>
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={MENU_DATA}
-          keyExtractor={(item) => item.title}
-          contentContainerStyle={styles.filterList}
-          renderItem={({ item, index }) => (
-            <TouchableOpacity style={styles.filterChip} onPress={() => scrollToSection(index)}>
-              <Text style={styles.filterText}>{item.title}</Text>
-            </TouchableOpacity>
-          )}
-        />
+        <TouchableOpacity 
+          style={styles.categoryPickerButton} 
+          onPress={() => setModalVisible(true)}
+        >
+          <Ionicons name="grid-outline" size={18} color="#FFF" style={{marginRight: 8}} />
+          <Text style={styles.categoryPickerText}>BROWSE CATEGORIES</Text>
+        </TouchableOpacity>
       </View>
+
+      {/* CATEGORY PICKER POP-UP */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Categories</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close-circle" size={28} color="#003366" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {MENU_DATA.map((section, index) => (
+                <TouchableOpacity 
+                  key={section.title} 
+                  style={styles.modalItem} 
+                  onPress={() => scrollToSection(index)}
+                >
+                  <Text style={styles.modalItemText}>{section.title}</Text>
+                  <Ionicons name="chevron-forward" size={16} color="#003366" opacity={0.3} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* MAIN MENU SECTION LIST */}
       <SectionList
         ref={sectionListRef}
         sections={MENU_DATA}
         keyExtractor={(item, index) => item.name + index}
         contentContainerStyle={styles.listPadding}
         stickySectionHeadersEnabled={true}
+        
+        // Critical for allowing jumping to sections at the bottom
+        onScrollToIndexFailed={(info) => {
+           sectionListRef.current?.scrollToLocation({
+             sectionIndex: info.index,
+             itemIndex: 0,
+             animated: false,
+           });
+        }}
+
         renderSectionHeader={({ section: { title } }) => (
           <View style={styles.sectionHeaderContainer}>
             <Text style={styles.sectionHeader}>{title}</Text>
@@ -166,7 +235,6 @@ export default function MenuScreen() {
               <Text style={styles.itemPrice}>{item.price}</Text>
             </View>
             
-            {/* Condition: Only show image box if an image is provided */}
             {item.image && (
               <View style={styles.imageContainer}>
                 <Image 
@@ -190,33 +258,73 @@ const styles = StyleSheet.create({
     backgroundColor: '#003366',
     borderBottomLeftRadius: 25,
     borderBottomRightRadius: 25,
-    elevation: 5,
-    shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 10,
+    paddingBottom: 20,
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 10,
   },
-  mainTitle: { fontSize: 24, fontWeight: '900', color: '#FFF', textAlign: 'center', marginBottom: 15 },
-  filterList: { paddingHorizontal: 15, paddingBottom: 15 },
-  filterChip: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
-    marginRight: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+  mainTitle: { fontSize: 24, fontWeight: '900', color: '#FFF', marginBottom: 15 },
+  categoryPickerButton: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
-  filterText: { color: '#FFF', fontWeight: '600', fontSize: 13 },
-  listPadding: { paddingBottom: 40 },
+  categoryPickerText: { color: '#FFF', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
+
+  // MODAL STYLES
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    height: '70%',
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 25,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+    paddingBottom: 15,
+  },
+  modalTitle: { fontSize: 22, fontWeight: '900', color: '#003366' },
+  modalItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+  },
+  modalItemText: { fontSize: 17, fontWeight: '600', color: '#2C3E50' },
+
+  // LIST & CARD STYLES
+  listPadding: { paddingBottom: 60 },
   sectionHeaderContainer: { backgroundColor: '#F4F7F9', paddingVertical: 10 },
   sectionHeader: {
     fontSize: 13, fontWeight: '800', backgroundColor: '#003366', color: '#FFF',
-    paddingVertical: 6, paddingHorizontal: 15, textTransform: 'uppercase',
-    letterSpacing: 1, alignSelf: 'flex-start', borderTopRightRadius: 15, borderBottomRightRadius: 15,
+    paddingVertical: 8, paddingHorizontal: 20, textTransform: 'uppercase',
+    letterSpacing: 1.5, alignSelf: 'flex-start', borderTopRightRadius: 20, borderBottomRightRadius: 20,
   },
   menuCard: {
-    backgroundColor: '#FFF', marginHorizontal: 16, marginVertical: 6, borderRadius: 15, padding: 16,
+    backgroundColor: '#FFF', marginHorizontal: 16, marginVertical: 8, borderRadius: 20, padding: 16,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5,
+    elevation: 3, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8,
   },
   textContainer: { flex: 1, paddingRight: 10 },
-  itemName: { fontSize: 16, fontWeight: '700', color: '#2C3E50', marginBottom: 2 },
-  itemDesc: { fontSize: 12, color: '#7F8C8D', lineHeight: 16, marginBottom: 6 },
-  itemPrice: { fontSize: 15, fontWeight: '800', color: '#003366' },
-  imageContainer: { width: 75, height: 75, borderRadius: 12, overflow: 'hidden', backgroundColor: '#EEE' },
+  itemName: { fontSize: 17, fontWeight: '700', color: '#2C3E50', marginBottom: 4 },
+  itemDesc: { fontSize: 12, color: '#7F8C8D', lineHeight: 18, marginBottom: 8 },
+  itemPrice: { fontSize: 16, fontWeight: '800', color: '#003366' },
+  imageContainer: { width: 85, height: 85, borderRadius: 15, overflow: 'hidden', backgroundColor: '#F0F4F8' },
   foodImage: { width: '100%', height: '100%' },
 });
