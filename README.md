@@ -1,50 +1,53 @@
-# Welcome to your Expo app 👋
+# SouvLucky Mobile App 🌯
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+### **Overview**
+The **SouvLucky Mobile App** is a premium loyalty and digital menu solution designed to enhance the customer experience. Built with a focus on performance and a high-end "Family" aesthetic, the app integrates a digital stamp system, an interactive menu, and secure customer onboarding.
 
-## Get started
+---
 
-1. Install dependencies
+### **🚀 Key Features**
 
-   ```bash
-   npm install
-   ```
+#### **1. Customer Authentication & Onboarding**
+* **Custom Registration Flow**: A tailored sign-up interface that captures user details and validates sessions.
+* **Legal Acceptance**: An integrated **Terms & Conditions** modal that ensures users agree to the loyalty program rules before joining.
+* **Welcome Gift Logic**: New users are automatically flagged to receive a **Free Gyro** upon their first successful registration.
 
-2. Start the app
+#### **2. Digital Loyalty System ("The Evil Eye")**
+* **Interactive Card**: A digital 10-stamp loyalty card where users collect "Evil Eyes" instead of traditional paper stamps.
+* **Smooth Animations**: Utilizing **Moti** for high-performance scale and fade transitions when stamps are added.
+* **Instant Feedback**: Optimistic UI updates ensure that clicking a stamp feels instantaneous while the data syncs in the background.
+* **Celebration Module**: Integrated confetti effects that trigger automatically upon card completion.
 
-   ```bash
-   npx expo start
-   ```
+#### **3. Interactive Digital Menu**
+* **Categorized Browsing**: The full menu is organized into logical sections (Gyros, Meze, Platters, etc.).
+* **Category Quick-Jump**: A custom slide-up modal that allows users to snap directly to specific menu sections using coordinate-based scrolling.
+* **Visual Menu**: Support for high-fidelity images and detailed descriptions for every item.
 
-In the output, you'll find options to open the app in a
+#### **4. Redemption & Staff Security**
+* **Staff-Verified Redemption**: A secure modal system designed for staff members to process free meals in-person.
+* **QR Integration**: Generates unique QR codes for seamless scanning at the point of sale.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### **🛠️ Technical Architecture**
 
-## Get a fresh project
+#### **Frontend (Mobile)**
+* **Framework**: **React Native** via **Expo**.
+* **Routing**: **Expo Router** (File-based navigation).
+* **Animations**: **Moti** and **Reanimated 2**.
+* **Storage**: **AsyncStorage** for persistent local sessions and stamp tracking.
+* **Typography**: Integrated **GFS Didot** Google Font for an authentic Greek aesthetic.
 
-When you're ready, run:
+#### **Backend**
+* **Engine**: **Java Spring Boot**.
+* **Functionality**: Manages user data, transaction history, and secure reward validation.
 
-```bash
-npm run reset-project
-```
+---
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### **📂 Project Structure & Logic**
 
-## Learn more
+* **`app/(tabs)/index.tsx`**: The main entry point handling user authentication, profile management, and the central dashboard.
+* **`app/(tabs)/rewards.tsx`**: The core loyalty engine. It uses **memoized components** to efficiently render the stamp grid and manage redemption states.
+* **`app/(tabs)/explore.tsx`**: The menu engine. It utilizes `useRef` to track section positions for smooth, programmatic scrolling.
+* **`assets/`**: Centralized storage for branding assets, high-resolution food photography, and custom UI textures.
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
