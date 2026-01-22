@@ -1,62 +1,53 @@
-SouvLucky Mobile App 🌯
-A premium loyalty and digital menu application for SouvLucky, designed to provide a seamless "Family" experience for customers. The app features a digital loyalty card system, a categorized menu, and profile management.
+# SouvLucky Mobile App 🌯
 
-🚀 Features
-🔐 Customer Registration & Auth
-Join the Family: A custom sign-up flow requiring name and email validation.
+### **Overview**
+The **SouvLucky Mobile App** is a premium loyalty and digital menu solution designed to enhance the customer experience. Built with a focus on performance and a high-end "Family" aesthetic, the app integrates a digital stamp system, an interactive menu, and secure customer onboarding.
 
-Terms & Conditions: Integrated legal agreement modal that must be accepted before registration.
+---
 
-Welcome Gift: New users automatically receive a "Welcome Gift" (1 Free Gyro) upon their first login.
+### **🚀 Key Features**
 
-🧿 Digital Loyalty Card ("Evil Eyes")
-Evil Eye Stamps: A digital 10-stamp card where users collect "Evil Eyes" instead of traditional stamps.
+#### **1. Customer Authentication & Onboarding**
+* **Custom Registration Flow**: A tailored sign-up interface that captures user details and validates sessions.
+* **Legal Acceptance**: An integrated **Terms & Conditions** modal that ensures users agree to the loyalty program rules before joining.
+* **Welcome Gift Logic**: New users are automatically flagged to receive a **Free Gyro** upon their first successful registration.
 
-Smooth Animations: Utilizes Moti for high-performance scale and fade animations when stamps are added.
+#### **2. Digital Loyalty System ("The Evil Eye")**
+* **Interactive Card**: A digital 10-stamp loyalty card where users collect "Evil Eyes" instead of traditional paper stamps.
+* **Smooth Animations**: Utilizing **Moti** for high-performance scale and fade transitions when stamps are added.
+* **Instant Feedback**: Optimistic UI updates ensure that clicking a stamp feels instantaneous while the data syncs in the background.
+* **Celebration Module**: Integrated confetti effects that trigger automatically upon card completion.
 
-Instant Feedback: Optimistic UI updates ensure that clicking a stamp feels instant and lag-free.
+#### **3. Interactive Digital Menu**
+* **Categorized Browsing**: The full menu is organized into logical sections (Gyros, Meze, Platters, etc.).
+* **Category Quick-Jump**: A custom slide-up modal that allows users to snap directly to specific menu sections using coordinate-based scrolling.
+* **Visual Menu**: Support for high-fidelity images and detailed descriptions for every item.
 
-Confetti Celebration: Integrated react-native-confetti-cannon to celebrate when a user completes their card.
+#### **4. Redemption & Staff Security**
+* **Staff-Verified Redemption**: A secure modal system designed for staff members to process free meals in-person.
+* **QR Integration**: Generates unique QR codes for seamless scanning at the point of sale.
 
-📋 Interactive Digital Menu
-Categorized Browsing: View the full SouvLucky menu organized by Meze, Gyros, Platters, and more.
+---
 
-Category Picker: A slide-up modal allowing users to jump directly to specific sections of the menu.
+### **🛠️ Technical Architecture**
 
-Visual Menu: Support for high-quality food imagery and detailed item descriptions.
+#### **Frontend (Mobile)**
+* **Framework**: **React Native** via **Expo**.
+* **Routing**: **Expo Router** (File-based navigation).
+* **Animations**: **Moti** and **Reanimated 2**.
+* **Storage**: **AsyncStorage** for persistent local sessions and stamp tracking.
+* **Typography**: Integrated **GFS Didot** Google Font for an authentic Greek aesthetic.
 
-🎁 Redemption System
-Staff-Verified Redemption: A secure modal system with a "Staff Mode" logic to process free meals in-person.
+#### **Backend**
+* **Engine**: **Java Spring Boot**.
+* **Functionality**: Manages user data, transaction history, and secure reward validation.
 
-QR Integration: Generates a dynamic QR code for staff to scan during stamp collection or reward redemption.
+---
 
-🛠️ Technical Overview
-The app is built using React Native (Expo) with a focus on performance and maintainability.
+### **📂 Project Structure & Logic**
 
-Key Technologies:
-Framework: Expo Router (File-based routing)
+* **`app/(tabs)/index.tsx`**: The main entry point handling user authentication, profile management, and the central dashboard.
+* **`app/(tabs)/rewards.tsx`**: The core loyalty engine. It uses **memoized components** to efficiently render the stamp grid and manage redemption states.
+* **`app/(tabs)/explore.tsx`**: The menu engine. It utilizes `useRef` to track section positions for smooth, programmatic scrolling.
+* **`assets/`**: Centralized storage for branding assets, high-resolution food photography, and custom UI textures.
 
-Animations: moti (Powered by Reanimated 2)
-
-Storage: AsyncStorage for local session management and stamp tracking.
-
-UI Components: react-native-circular-progress for the profile completion ring.
-
-Typography: Google Fonts integration using GFS Didot for an authentic Greek aesthetic.
-
-📂 Code Structure & Logic
-1. app/(tabs)/index.tsx (Home Screen)
-Handles the main user state. It manages the registration logic, checks for existing sessions on boot, and displays the user's progress toward their next reward.
-
-2. app/(tabs)/rewards.tsx (Loyalty Screen)
-The core of the gamification logic.
-
-Memoized Components: The EvilEye component is memoized to prevent unnecessary re-renders of the 10-stamp grid.
-
-Redemption Logic: Manages the state of the "Welcome Gift" and the completion of the 10-stamp loyalty card.
-
-3. app/(tabs)/explore.tsx (Menu Screen)
-Uses a useRef based positioning system. When a user selects a category from the modal, the app calculates the y coordinate of that section and performs a smooth scroll to the target item.
-
-4. assets/
-Contains all custom branding, including the SouvLucky logo, background textures (table wood and Greek patterns), and food photography.
