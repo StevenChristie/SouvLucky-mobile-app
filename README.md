@@ -1,50 +1,62 @@
-# Welcome to your Expo app 👋
+SouvLucky Mobile App 🌯
+A premium loyalty and digital menu application for SouvLucky, designed to provide a seamless "Family" experience for customers. The app features a digital loyalty card system, a categorized menu, and profile management.
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+🚀 Features
+🔐 Customer Registration & Auth
+Join the Family: A custom sign-up flow requiring name and email validation.
 
-## Get started
+Terms & Conditions: Integrated legal agreement modal that must be accepted before registration.
 
-1. Install dependencies
+Welcome Gift: New users automatically receive a "Welcome Gift" (1 Free Gyro) upon their first login.
 
-   ```bash
-   npm install
-   ```
+🧿 Digital Loyalty Card ("Evil Eyes")
+Evil Eye Stamps: A digital 10-stamp card where users collect "Evil Eyes" instead of traditional stamps.
 
-2. Start the app
+Smooth Animations: Utilizes Moti for high-performance scale and fade animations when stamps are added.
 
-   ```bash
-   npx expo start
-   ```
+Instant Feedback: Optimistic UI updates ensure that clicking a stamp feels instant and lag-free.
 
-In the output, you'll find options to open the app in a
+Confetti Celebration: Integrated react-native-confetti-cannon to celebrate when a user completes their card.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+📋 Interactive Digital Menu
+Categorized Browsing: View the full SouvLucky menu organized by Meze, Gyros, Platters, and more.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Category Picker: A slide-up modal allowing users to jump directly to specific sections of the menu.
 
-## Get a fresh project
+Visual Menu: Support for high-quality food imagery and detailed item descriptions.
 
-When you're ready, run:
+🎁 Redemption System
+Staff-Verified Redemption: A secure modal system with a "Staff Mode" logic to process free meals in-person.
 
-```bash
-npm run reset-project
-```
+QR Integration: Generates a dynamic QR code for staff to scan during stamp collection or reward redemption.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+🛠️ Technical Overview
+The app is built using React Native (Expo) with a focus on performance and maintainability.
 
-## Learn more
+Key Technologies:
+Framework: Expo Router (File-based routing)
 
-To learn more about developing your project with Expo, look at the following resources:
+Animations: moti (Powered by Reanimated 2)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Storage: AsyncStorage for local session management and stamp tracking.
 
-## Join the community
+UI Components: react-native-circular-progress for the profile completion ring.
 
-Join our community of developers creating universal apps.
+Typography: Google Fonts integration using GFS Didot for an authentic Greek aesthetic.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+📂 Code Structure & Logic
+1. app/(tabs)/index.tsx (Home Screen)
+Handles the main user state. It manages the registration logic, checks for existing sessions on boot, and displays the user's progress toward their next reward.
+
+2. app/(tabs)/rewards.tsx (Loyalty Screen)
+The core of the gamification logic.
+
+Memoized Components: The EvilEye component is memoized to prevent unnecessary re-renders of the 10-stamp grid.
+
+Redemption Logic: Manages the state of the "Welcome Gift" and the completion of the 10-stamp loyalty card.
+
+3. app/(tabs)/explore.tsx (Menu Screen)
+Uses a useRef based positioning system. When a user selects a category from the modal, the app calculates the y coordinate of that section and performs a smooth scroll to the target item.
+
+4. assets/
+Contains all custom branding, including the SouvLucky logo, background textures (table wood and Greek patterns), and food photography.
