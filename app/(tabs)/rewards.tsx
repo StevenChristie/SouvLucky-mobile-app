@@ -21,39 +21,42 @@ import ConfettiCannon from "react-native-confetti-cannon";
 const { width } = Dimensions.get("window");
 
 // MEMOIZED: Prevents unnecessary re-renders of existing stamps
-const EvilEye = memo(
-  ({ filled, isLast }: { filled: boolean; isLast: boolean }) => {
-    if (!filled) {
-      return (
-        <View style={[styles.eyeOuter, styles.eyeGhost]}>
-          {isLast ? (
-            <Ionicons name="gift" size={24} color="rgba(0, 51, 102, 0.2)" />
-          ) : (
-            <View style={styles.eyeIrisGhost} />
-          )}
-        </View>
-      );
-    }
-
+// Named function used to resolve "Missing Display Name" warning
+const EvilEye = memo(function EvilEye({
+  filled,
+  isLast,
+}: {
+  filled: boolean;
+  isLast: boolean;
+}) {
+  if (!filled) {
     return (
-      <MotiView
-        from={{ opacity: 0, scale: 0.3 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{
-          type: "timing",
-          duration: 300,
-        }}
-        style={styles.eyeOuter}
-      >
-        <View style={styles.eyeWhite}>
-          <View style={styles.eyeIris} />
-        </View>
-      </MotiView>
+      <View style={[styles.eyeOuter, styles.eyeGhost]}>
+        {isLast ? (
+          <Ionicons name="gift" size={24} color="rgba(0, 51, 102, 0.2)" />
+        ) : (
+          <View style={styles.eyeIrisGhost} />
+        )}
+      </View>
     );
-  },
-);
+  }
 
-EvilEye.displayName = "EvilEye";
+  return (
+    <MotiView
+      from={{ opacity: 0, scale: 0.3 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{
+        type: "timing",
+        duration: 300,
+      }}
+      style={styles.eyeOuter}
+    >
+      <View style={styles.eyeWhite}>
+        <View style={styles.eyeIris} />
+      </View>
+    </MotiView>
+  );
+});
 
 export default function RewardsScreen() {
   const [punches, setPunches] = useState(0);

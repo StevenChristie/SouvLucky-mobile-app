@@ -14,12 +14,12 @@ import {
     View,
 } from "react-native";
 
-// 1. Import Font Loaders
+// 1. Font Loaders
 import { GFSDidot_400Regular, useFonts } from "@expo-google-fonts/gfs-didot";
 
 const { width } = Dimensions.get("window");
 
-// 1. MENU DATA
+// 2. FULL MENU DATA
 const MENU_DATA = [
   {
     title: "Meze & Dips",
@@ -278,7 +278,6 @@ export default function MenuScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const sectionPositions = useRef<{ [key: string]: number }>({});
 
-  // 2. Load the GFS Didot Greek Font
   let [fontsLoaded] = useFonts({
     GreekFont: GFSDidot_400Regular,
   });
@@ -297,7 +296,6 @@ export default function MenuScreen() {
     }, 450);
   };
 
-  // 3. Prevent rendering until fonts are loaded
   if (!fontsLoaded) return null;
 
   return (
@@ -305,7 +303,6 @@ export default function MenuScreen() {
       <StatusBar barStyle="light-content" />
 
       <View style={styles.headerContainer}>
-        {/* Page Title with Greek Font */}
         <Text style={[styles.mainTitle, { fontFamily: "GreekFont" }]}>
           SouvLucky Menu
         </Text>
@@ -374,7 +371,6 @@ export default function MenuScreen() {
             }}
           >
             <View style={styles.sectionHeaderContainer}>
-              {/* Section Header with Greek Font */}
               <Text style={[styles.sectionHeader, { fontFamily: "GreekFont" }]}>
                 {section.title}
               </Text>
@@ -419,7 +415,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   mainTitle: {
-    fontSize: 32, // Adjusted for font
+    fontSize: 32,
     color: "#FFF",
     marginBottom: 15,
   },
@@ -472,7 +468,7 @@ const styles = StyleSheet.create({
   listPadding: { paddingBottom: 100 },
   sectionHeaderContainer: { backgroundColor: "#F4F7F9", paddingVertical: 10 },
   sectionHeader: {
-    fontSize: 20, // Adjusted for font
+    fontSize: 20,
     backgroundColor: "#003366",
     color: "#FFF",
     paddingVertical: 8,
