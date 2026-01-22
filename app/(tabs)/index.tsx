@@ -2,12 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
+import { View as MotiView } from "moti";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
   Image,
   ImageBackground,
+  Modal,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -27,6 +29,11 @@ const { width } = Dimensions.get("window");
 export default function HomeScreen() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
+  // TERMS & CONDITIONS STATES
+  const [agreed, setAgreed] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   // 2. Load the GFS Didot Greek Font
   let [fontsLoaded] = useFonts({
@@ -83,6 +90,15 @@ export default function HomeScreen() {
   };
 
   const handleSignUp = async () => {
+    // Check for Agreement first
+    if (!agreed) {
+      Alert.alert(
+        "Agreement Required",
+        "Please read and agree to the Terms & Conditions to continue.",
+      );
+      return;
+    }
+
     if (!user.name.trim() || !user.email.trim()) {
       Alert.alert("Required", "Please enter your name and email.");
       return;
@@ -98,18 +114,21 @@ export default function HomeScreen() {
       JSON.stringify(sessionData),
     );
     await AsyncStorage.setItem("@souvlucky_stamps", "0");
+
     setIsLoggedIn(true);
+    setShowWelcomeModal(true);
   };
 
   const handleLogout = async () => {
     await AsyncStorage.clear();
     setIsLoggedIn(false);
     setUser({ name: "", email: "", punches: 0, profileImage: null });
+    setAgreed(false); // Reset agreement on logout
   };
 
-  // 3. Prevent rendering until fonts are loaded
   if (!fontsLoaded) return null;
 
+  // --- REGISTRATION VIEW ---
   if (!isLoggedIn) {
     return (
       <SafeAreaView style={styles.authContainer}>
@@ -123,13 +142,11 @@ export default function HomeScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          {/* Applied Greek Font */}
-          <Text style={[styles.authTitle, { fontFamily: "GreekFont" }]}>
-            SouvLucky Family
-          </Text>
+
           <Text style={styles.authSub}>
             Register and get your first Gyro on us! 🌯
           </Text>
+
           <TextInput
             style={styles.input}
             placeholder="Your Name"
@@ -144,14 +161,74 @@ export default function HomeScreen() {
             autoCapitalize="none"
             onChangeText={(t) => setUser({ ...user, email: t })}
           />
+
+          {/* TERMS & CONDITIONS CHECKBOX ROW */}
+          <View style={styles.termsRow}>
+            <TouchableOpacity
+              style={styles.checkbox}
+              onPress={() => setAgreed(!agreed)}
+            >
+              {agreed && (
+                <Ionicons name="checkmark" size={18} color="#003366" />
+              )}
+            </TouchableOpacity>
+            <Text style={styles.termsText}>
+              I agree to the{" "}
+              <Text
+                style={styles.termsLink}
+                onPress={() => setShowTermsModal(true)}
+              >
+                Terms & Conditions
+              </Text>
+            </Text>
+          </View>
+
           <TouchableOpacity style={styles.primaryBtn} onPress={handleSignUp}>
             <Text style={styles.primaryBtnText}>JOIN THE FAMILY</Text>
           </TouchableOpacity>
         </ScrollView>
+
+        {/* TERMS & CONDITIONS MODAL */}
+        <Modal
+          visible={showTermsModal}
+          animationType="slide"
+          transparent={true}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.legalCard}>
+              <Text style={[styles.legalTitle, { fontFamily: "GreekFont" }]}>
+                Terms of Use
+              </Text>
+              <ScrollView style={styles.legalScroll}>
+                <Text style={styles.legalText}>
+                  Welcome to the SouvLucky Family! By registering, you agree to:
+                  {"\n\n"}
+                  1. Eligibility: You must provide a valid email to participate
+                  in the loyalty program.{"\n\n"}
+                  2. Rewards: The Welcome Gift (1 Free Gyro) is a one-time offer
+                  per unique user.{"\n\n"}
+                  3. Evil Eyes: Stamps are earned per qualifying purchase.
+                  SouvLucky reserves the right to verify purchases.{"\n\n"}
+                  4. Staff Verification: All rewards must be redeemed in-person
+                  and processed by a staff member.{"\n\n"}
+                  5. Privacy: Your info is used strictly for reward tracking and
+                  occasional Greek-themed marketing deals.
+                </Text>
+              </ScrollView>
+              <TouchableOpacity
+                style={styles.dismissBtn}
+                onPress={() => setShowTermsModal(false)}
+              >
+                <Text style={styles.dismissBtnText}>CLOSE</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     );
   }
 
+  // --- DASHBOARD VIEW ---
   return (
     <ImageBackground
       source={require("../../assets/images/table.png")}
@@ -196,7 +273,6 @@ export default function HomeScreen() {
                 )}
               </AnimatedCircularProgress>
 
-              {/* Applied Greek Font to Greeting */}
               <Text style={[styles.userName, { fontFamily: "GreekFont" }]}>
                 Yassas, {user.name}!
               </Text>
@@ -205,7 +281,7 @@ export default function HomeScreen() {
                 <Text style={styles.memberStatus}>
                   {user.punches === 10
                     ? "REWARD READY 🎁"
-                    : `${user.punches}/10 EYES COLLECTED`}
+                    : `${user.punches}/10 EVIL EYES COLLECTED`}
                 </Text>
               </View>
             </View>
@@ -249,6 +325,51 @@ export default function HomeScreen() {
               <Text style={styles.logoutText}>LOGOUT</Text>
             </TouchableOpacity>
           </ScrollView>
+
+          {/* WELCOME MODAL */}
+          <Modal visible={showWelcomeModal} transparent animationType="fade">
+            <View style={styles.modalOverlay}>
+              <MotiView
+                from={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                style={styles.welcomeModalCard}
+              >
+                <View style={styles.modalHeaderIcon}>
+                  <Ionicons name="sparkles" size={40} color="#003366" />
+                </View>
+
+                <Text style={[styles.modalTitle, { fontFamily: "GreekFont" }]}>
+                  You&apos;re in the Family!
+                </Text>
+
+                <Text style={styles.modalText}>
+                  We&apos;ve dropped a{" "}
+                  <Text style={{ fontWeight: "bold" }}>FREE Gyro</Text> into
+                  your rewards as a thank you for registering with us.
+                </Text>
+
+                <View style={styles.suggestionBox}>
+                  <Ionicons
+                    name="information-circle-outline"
+                    size={20}
+                    color="#003366"
+                  />
+                  <Text style={styles.suggestionText}>
+                    Check out the{" "}
+                    <Text style={{ fontWeight: "700" }}>Rewards</Text> section
+                    whenever you&apos;re ready to claim it!
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.dismissBtn}
+                  onPress={() => setShowWelcomeModal(false)}
+                >
+                  <Text style={styles.dismissBtnText}>GOT IT!</Text>
+                </TouchableOpacity>
+              </MotiView>
+            </View>
+          </Modal>
         </SafeAreaView>
       </View>
     </ImageBackground>
@@ -257,22 +378,23 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   bgImage: { flex: 1 },
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.3)" },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)" },
   container: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingBottom: 40 },
   authContainer: { flex: 1, backgroundColor: "#FFF" },
   authScroll: {
     alignItems: "center",
     paddingHorizontal: "10%",
-    paddingTop: 60,
+    paddingTop: 30,
   },
-  logo: { width: width * 0.35, height: width * 0.35, marginBottom: 20 },
-  authTitle: { fontSize: 32, color: "#003366", textAlign: "center" },
+  logo: { width: width * 0.85, height: width * 0.6, marginBottom: -10 },
   authSub: {
     textAlign: "center",
     color: "#7F8C8D",
-    marginTop: 10,
-    marginBottom: 30,
+    marginTop: -10,
+    marginBottom: 40,
+    fontSize: 16,
+    fontWeight: "500",
   },
   input: {
     width: "100%",
@@ -284,6 +406,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#EEE",
+  },
+  // TERMS CHECKBOX STYLES
+  termsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 20,
+    paddingHorizontal: 5,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: "#003366",
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  termsText: { color: "#7F8C8D", fontSize: 13 },
+  termsLink: {
+    color: "#003366",
+    fontWeight: "bold",
+    textDecorationLine: "underline",
   },
   primaryBtn: {
     width: "100%",
@@ -326,7 +472,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#FFF",
   },
-
   userName: { fontSize: 34, color: "#FFF", marginTop: 15, textAlign: "center" },
   statusBadge: {
     backgroundColor: "rgba(255,255,255,0.2)",
@@ -371,5 +516,72 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 1,
     textDecorationLine: "underline",
+  },
+
+  // MODAL STYLES
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.85)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  welcomeModalCard: {
+    width: "85%",
+    backgroundColor: "#FFF",
+    borderRadius: 35,
+    padding: 30,
+    alignItems: "center",
+  },
+  legalCard: {
+    width: "85%",
+    maxHeight: "70%",
+    backgroundColor: "#FFF",
+    borderRadius: 25,
+    padding: 25,
+    alignItems: "center",
+  },
+  legalTitle: { fontSize: 24, color: "#003366", marginBottom: 15 },
+  legalScroll: { width: "100%", marginBottom: 15 },
+  legalText: { fontSize: 14, color: "#2C3E50", lineHeight: 20 },
+  modalHeaderIcon: { marginBottom: 15 },
+  modalTitle: {
+    fontSize: 26,
+    color: "#003366",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 15,
+    color: "#2C3E50",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  suggestionBox: {
+    flexDirection: "row",
+    backgroundColor: "#F0F4F8",
+    padding: 15,
+    borderRadius: 15,
+    alignItems: "center",
+    marginBottom: 25,
+  },
+  suggestionText: {
+    flex: 1,
+    fontSize: 13,
+    color: "#003366",
+    marginLeft: 10,
+  },
+  dismissBtn: {
+    backgroundColor: "#003366",
+    paddingVertical: 16,
+    borderRadius: 20,
+    alignItems: "center",
+    width: "100%",
+  },
+  dismissBtnText: {
+    color: "#FFF",
+    fontWeight: "900",
+    fontSize: 14,
+    letterSpacing: 1,
   },
 });

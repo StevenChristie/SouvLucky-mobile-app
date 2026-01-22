@@ -1,10 +1,12 @@
+import { GFSDidot_400Regular, useFonts } from "@expo-google-fonts/gfs-didot";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useState } from "react";
+import { View as MotiView } from "moti";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import {
-  Alert,
   Dimensions,
   FlatList,
+  Image,
   ImageBackground,
   Modal,
   SafeAreaView,
@@ -15,46 +17,56 @@ import {
   View,
 } from "react-native";
 import ConfettiCannon from "react-native-confetti-cannon";
-// 1. Import Moti for micro-animations
-import { View as MotiView } from "moti";
 
 const { width } = Dimensions.get("window");
 
-const EvilEye = ({ filled, isLast }: { filled: boolean; isLast: boolean }) => {
-  if (!filled) {
-    return (
-      <View style={[styles.eyeOuter, styles.eyeGhost]}>
-        {isLast ? (
-          <Ionicons name="gift" size={24} color="rgba(0, 51, 102, 0.2)" />
-        ) : (
-          <View style={styles.eyeIrisGhost} />
-        )}
-      </View>
-    );
-  }
+// MEMOIZED: Prevents unnecessary re-renders of existing stamps
+const EvilEye = memo(
+  ({ filled, isLast }: { filled: boolean; isLast: boolean }) => {
+    if (!filled) {
+      return (
+        <View style={[styles.eyeOuter, styles.eyeGhost]}>
+          {isLast ? (
+            <Ionicons name="gift" size={24} color="rgba(0, 51, 102, 0.2)" />
+          ) : (
+            <View style={styles.eyeIrisGhost} />
+          )}
+        </View>
+      );
+    }
 
-  // 2. Wrap the filled eye in a MotiView for a "pop" effect
-  return (
-    <MotiView
-      from={{ scale: 0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", damping: 12 }}
-      style={styles.eyeOuter}
-    >
-      <View style={styles.eyeWhite}>
-        <View style={styles.eyeIris} />
-      </View>
-    </MotiView>
-  );
-};
+    return (
+      <MotiView
+        from={{ opacity: 0, scale: 0.3 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{
+          type: "timing",
+          duration: 300,
+        }}
+        style={styles.eyeOuter}
+      >
+        <View style={styles.eyeWhite}>
+          <View style={styles.eyeIris} />
+        </View>
+      </MotiView>
+    );
+  },
+);
+
+EvilEye.displayName = "EvilEye";
 
 export default function RewardsScreen() {
   const [punches, setPunches] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [hasWelcomeGyro, setHasWelcomeGyro] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const totalSpots = 10;
+
+  let [fontsLoaded] = useFonts({
+    GreekFont: GFSDidot_400Regular,
+  });
 
   useEffect(() => {
     loadData();
@@ -62,41 +74,48 @@ export default function RewardsScreen() {
 
   const loadData = async () => {
     try {
-      const savedUser = await AsyncStorage.getItem("@souvlucky_session");
+      const [savedUser, savedStamps, voucherClaimed] = await Promise.all([
+        AsyncStorage.getItem("@souvlucky_session"),
+        AsyncStorage.getItem("@souvlucky_stamps"),
+        AsyncStorage.getItem("@welcome_claimed"),
+      ]);
+
       if (!savedUser) {
         setIsLoggedIn(false);
         return;
       }
       setIsLoggedIn(true);
-      const savedStamps = await AsyncStorage.getItem("@souvlucky_stamps");
       if (savedStamps) setPunches(parseInt(savedStamps));
-
-      const voucherClaimed = await AsyncStorage.getItem("@welcome_claimed");
       if (voucherClaimed !== "true") setHasWelcomeGyro(true);
     } catch (e) {
       console.log("Error loading data:", e);
     }
   };
 
-  const addStamp = async () => {
+  const handleRedeem = async () => {
+    setHasWelcomeGyro(false);
+    setShowRedeemModal(false);
+    setShowConfetti(true);
+    AsyncStorage.setItem("@welcome_claimed", "true");
+  };
+
+  const addStamp = useCallback(async () => {
     if (punches < totalSpots) {
       const newCount = punches + 1;
       setPunches(newCount);
-      await AsyncStorage.setItem("@souvlucky_stamps", newCount.toString());
-
-      if (newCount === totalSpots) {
-        setShowConfetti(true);
-        Alert.alert("OPA! 🎉", "Free Gyro Earned! Show this to staff.");
-      }
+      AsyncStorage.setItem("@souvlucky_stamps", newCount.toString());
+      if (newCount === totalSpots) setShowConfetti(true);
     }
-  };
+  }, [punches]);
 
   const resetCard = async () => {
     setPunches(0);
     setShowConfetti(false);
-    await AsyncStorage.setItem("@souvlucky_stamps", "0");
     setShowQR(false);
+    AsyncStorage.setItem("@souvlucky_stamps", "0");
   };
+
+  if (!fontsLoaded) return null;
 
   if (!isLoggedIn) {
     return (
@@ -121,7 +140,9 @@ export default function RewardsScreen() {
           contentContainerStyle={{ alignItems: "center", paddingBottom: 50 }}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>SouvLucky Rewards</Text>
+            <Text style={[styles.title, { fontFamily: "GreekFont" }]}>
+              SouvLucky Rewards
+            </Text>
             <Text style={styles.subtitle}>
               {punches} of {totalSpots} Evil Eyes Collected
             </Text>
@@ -131,38 +152,31 @@ export default function RewardsScreen() {
             <MotiView
               from={{ translateY: 20, opacity: 0 }}
               animate={{ translateY: 0, opacity: 1 }}
-              transition={{ delay: 300 }}
+              transition={{ delay: 200 }}
             >
               <TouchableOpacity
                 style={styles.welcomeCard}
-                onPress={() => {
-                  Alert.alert(
-                    "Redeem Welcome Gift?",
-                    "Staff: Tap redeem to process free meal.",
-                    [
-                      { text: "Cancel" },
-                      {
-                        text: "Redeem",
-                        onPress: async () => {
-                          setHasWelcomeGyro(false);
-                          await AsyncStorage.setItem(
-                            "@welcome_claimed",
-                            "true",
-                          );
-                        },
-                      },
-                    ],
-                  );
-                }}
+                onPress={() => setShowRedeemModal(true)}
               >
-                <Ionicons name="ribbon" size={30} color="#F1C40F" />
+                <View style={styles.giftIconContainer}>
+                  <Ionicons name="gift" size={28} color="#FFF" />
+                </View>
                 <View style={{ marginLeft: 15, flex: 1 }}>
-                  <Text style={styles.welcomeTitle}>Welcome Gift!</Text>
+                  <Text
+                    style={[styles.welcomeTitle, { fontFamily: "GreekFont" }]}
+                  >
+                    Welcome Gift!
+                  </Text>
                   <Text style={styles.welcomeSub}>
                     Tap to redeem 1 FREE Gyro
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#F1C40F" />
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color="#003366"
+                  opacity={0.3}
+                />
               </TouchableOpacity>
             </MotiView>
           )}
@@ -184,13 +198,6 @@ export default function RewardsScreen() {
                     />
                   </View>
                 )}
-              />
-            </View>
-            <View style={styles.progressBarBg}>
-              <MotiView
-                animate={{ width: `${(punches / totalSpots) * 100}%` }}
-                transition={{ type: "timing", duration: 500 }}
-                style={styles.progressBarFill}
               />
             </View>
           </View>
@@ -218,9 +225,45 @@ export default function RewardsScreen() {
           </TouchableOpacity>
         </ScrollView>
 
+        <Modal visible={showRedeemModal} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <MotiView
+              from={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              style={styles.redeemContainer}
+            >
+              <Image
+                source={require("../../assets/images/gyroman.png")}
+                style={styles.gyroImage}
+                resizeMode="contain"
+              />
+              <Text style={[styles.redeemTitle, { fontFamily: "GreekFont" }]}>
+                Redeem Gift?
+              </Text>
+              <Text style={styles.redeemSub}>
+                Staff: Tap redeem to process free meal.
+              </Text>
+              <View style={styles.redeemActionRow}>
+                <TouchableOpacity
+                  style={styles.cancelActionBtn}
+                  onPress={() => setShowRedeemModal(false)}
+                >
+                  <Text style={styles.cancelActionText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.confirmActionBtn}
+                  onPress={handleRedeem}
+                >
+                  <Text style={styles.confirmActionText}>Redeem</Text>
+                </TouchableOpacity>
+              </View>
+            </MotiView>
+          </View>
+        </Modal>
+
         {showConfetti && (
           <ConfettiCannon
-            count={200}
+            count={150}
             origin={{ x: width / 2, y: -20 }}
             colors={["#003366", "#FFFFFF", "#00bfff"]}
             fadeOut={true}
@@ -260,75 +303,56 @@ export default function RewardsScreen() {
 }
 
 const styles = StyleSheet.create({
-  bgImage: { flex: 1 },
   container: { flex: 1 },
-  lockedContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F4F7F9",
-    padding: "10%",
-  },
-  lockedTitle: {
-    fontSize: 24,
-    fontWeight: "900",
-    color: "#003366",
-    marginTop: 20,
-  },
-  lockedSub: {
-    textAlign: "center",
-    color: "#7F8C8D",
-    marginTop: 10,
-    lineHeight: 20,
-  },
+  bgImage: { flex: 1 },
   header: {
-    backgroundColor: "rgba(0, 51, 102, 0.8)",
+    backgroundColor: "rgba(0, 51, 102, 0.85)",
     width: "100%",
     paddingVertical: 40,
     alignItems: "center",
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
-  title: { fontSize: 26, fontWeight: "900", color: "#FFF" },
+  title: { fontSize: 28, color: "#FFF" },
   subtitle: { fontSize: 15, color: "rgba(255,255,255,0.7)", marginTop: 5 },
   welcomeCard: {
     flexDirection: "row",
     backgroundColor: "#FFF",
-    width: "90%",
+    width: width * 0.9,
     padding: 20,
-    borderRadius: 20,
-    marginTop: 20,
+    borderRadius: 25,
+    marginTop: 25,
     alignItems: "center",
-    borderLeftWidth: 6,
-    borderLeftColor: "#F1C40F",
-    elevation: 5,
-  },
-  welcomeTitle: { fontWeight: "900", color: "#003366", fontSize: 16 },
-  welcomeSub: { fontSize: 12, color: "#7F8C8D" },
-  glassCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.75)",
-    width: "90%",
-    borderRadius: 30,
-    padding: 25,
-    marginTop: 20,
     elevation: 10,
+  },
+  giftIconContainer: {
+    backgroundColor: "#003366",
+    padding: 10,
+    borderRadius: 15,
+  },
+  welcomeTitle: { fontSize: 20, color: "#003366" },
+  welcomeSub: { fontSize: 13, color: "#7F8C8D" },
+  glassCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.85)",
+    width: width * 0.94,
+    borderRadius: 35,
+    paddingHorizontal: 15,
+    paddingVertical: 35,
+    marginTop: 20,
+    elevation: 12,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.4)",
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "800",
     color: "#003366",
     textAlign: "center",
+    marginBottom: 25,
   },
-  gridContainer: { marginTop: 15, marginBottom: 20, width: "100%" },
-  columnWrapper: { justifyContent: "space-between", marginBottom: 12 },
-  spot: {
-    width: width * 0.14,
-    height: width * 0.14,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  gridContainer: { width: "100%" },
+  columnWrapper: { justifyContent: "space-around", marginBottom: 20 },
+  spot: { width: width * 0.16, height: width * 0.16 },
   eyeOuter: {
     width: "100%",
     height: "100%",
@@ -364,14 +388,6 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     backgroundColor: "#00bfff",
   },
-  progressBarBg: {
-    height: 10,
-    backgroundColor: "rgba(0,0,0,0.05)",
-    borderRadius: 5,
-    overflow: "hidden",
-    marginTop: 10,
-  },
-  progressBarFill: { height: "100%", backgroundColor: "#27AE60" },
   scanButton: {
     backgroundColor: "#003366",
     flexDirection: "row",
@@ -384,20 +400,43 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   scanButtonText: { color: "#FFF", fontSize: 16, fontWeight: "900" },
-  debugButton: { marginTop: 20 },
-  debugText: {
-    color: "#FFF",
-    fontSize: 11,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    padding: 5,
-    borderRadius: 5,
-  },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.8)",
+    backgroundColor: "rgba(0,0,0,0.75)",
     justifyContent: "center",
     alignItems: "center",
   },
+  redeemContainer: {
+    width: "85%",
+    backgroundColor: "#FFF",
+    borderRadius: 35,
+    padding: 30,
+    alignItems: "center",
+  },
+  gyroImage: { width: 200, height: 200, marginBottom: -20 },
+  redeemTitle: { fontSize: 32, color: "#003366", marginBottom: 10 },
+  redeemSub: {
+    fontSize: 14,
+    color: "#7F8C8D",
+    textAlign: "center",
+    marginBottom: 25,
+  },
+  redeemActionRow: {
+    flexDirection: "row",
+    width: "100%",
+    borderTopWidth: 1,
+    borderTopColor: "#EEE",
+    paddingTop: 20,
+  },
+  cancelActionBtn: { flex: 1, alignItems: "center" },
+  cancelActionText: { color: "#7F8C8D", fontSize: 16, fontWeight: "600" },
+  confirmActionBtn: {
+    flex: 1,
+    alignItems: "center",
+    borderLeftWidth: 1,
+    borderLeftColor: "#EEE",
+  },
+  confirmActionText: { color: "#003366", fontSize: 16, fontWeight: "800" },
   qrContainer: {
     backgroundColor: "#FFF",
     width: "85%",
@@ -426,4 +465,26 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   resetText: { color: "#FFF", fontWeight: "700" },
+  lockedContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F4F7F9",
+    padding: "10%",
+  },
+  lockedTitle: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: "#003366",
+    marginTop: 20,
+  },
+  lockedSub: { textAlign: "center", color: "#7F8C8D", marginTop: 10 },
+  debugButton: { marginTop: 20 },
+  debugText: {
+    color: "#FFF",
+    fontSize: 11,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    padding: 5,
+    borderRadius: 5,
+  },
 });
