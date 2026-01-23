@@ -147,18 +147,28 @@ export default function HomeScreen() {
             Register and get your first Gyro on us! 🌯
           </Text>
 
+          {/* NAME INPUT */}
           <TextInput
             style={styles.input}
             placeholder="Your Name"
             placeholderTextColor="#95A5A6"
+            autoComplete="name" // Android
+            textContentType="name" // iOS
             onChangeText={(t) => setUser({ ...user, name: t })}
           />
+
+          {/* EMAIL INPUT WITH REFINED AUTOFILL */}
           <TextInput
             style={styles.input}
             placeholder="Email Address"
             placeholderTextColor="#95A5A6"
-            keyboardType="email-address"
-            autoCapitalize="none"
+            keyboardType="email-address" // Shows @ key
+            autoCapitalize="none" // No auto-caps
+            autoCorrect={false} // No auto-correct
+            // Refined Autofill Props
+            autoComplete="email" // Android
+            textContentType="username" // Triggers saved logins/emails on iOS
+            importantForAutofill="yes" // Android priority
             onChangeText={(t) => setUser({ ...user, email: t })}
           />
 
@@ -407,7 +417,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#EEE",
   },
-  // TERMS CHECKBOX STYLES
   termsRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -518,7 +527,6 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
 
-  // MODAL STYLES
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.85)",
