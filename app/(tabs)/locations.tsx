@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Linking,
   Platform,
@@ -13,7 +12,7 @@ import {
 } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
-// The height of your bottom card + nav bar (Approx 400 pixels)
+// Adjusts the map center so the marker isn't hidden by the info card
 const CARD_HEIGHT_OFFSET = Platform.OS === "ios" ? 420 : 380;
 const SAFE_BOTTOM = Platform.OS === "ios" ? 115 : 95;
 
@@ -44,16 +43,7 @@ const LOCATIONS = [
 
 export default function LocationsScreen() {
   const [activeIdx, setActiveIdx] = useState(0);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const current = LOCATIONS[activeIdx];
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const savedUser = await AsyncStorage.getItem("@souvlucky_session");
-      setIsLoggedIn(!!savedUser);
-    };
-    checkSession();
-  }, []);
 
   const makeCall = (number: string) => Linking.openURL(`tel:${number}`);
 
@@ -72,15 +62,6 @@ export default function LocationsScreen() {
     if (url) Linking.openURL(url);
   };
 
-  if (!isLoggedIn) {
-    return (
-      <SafeAreaView style={styles.lockedContainer}>
-        <Ionicons name="lock-closed" size={80} color="#003366" />
-        <Text style={styles.lockedTitle}>Locations Locked</Text>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -88,13 +69,7 @@ export default function LocationsScreen() {
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
-        // mapPadding shifts the logical center of the map upwards
-        mapPadding={{
-          top: 0,
-          right: 0,
-          left: 0,
-          bottom: CARD_HEIGHT_OFFSET,
-        }}
+        mapPadding={{ top: 0, right: 0, left: 0, bottom: CARD_HEIGHT_OFFSET }}
         region={{
           ...current.coords,
           latitudeDelta: 0.015,
@@ -108,7 +83,7 @@ export default function LocationsScreen() {
         </Marker>
       </MapView>
 
-      {/* TOP TOGGLE */}
+      {/* TOP TOGGLE - BRANCH SELECTOR */}
       <SafeAreaView style={styles.overlayTop}>
         <View style={styles.tabBar}>
           {LOCATIONS.map((loc, index) => (
@@ -208,7 +183,7 @@ const styles = StyleSheet.create({
     minWidth: 140,
     alignItems: "center",
   },
-  activeTab: { backgroundColor: "#7B8DFF" },
+  activeTab: { backgroundColor: "#003366" }, // Updated to Navy
   inactiveTab: { backgroundColor: "transparent" },
   tabText: { fontWeight: "800", fontSize: 13 },
   activeTabText: { color: "#FFF" },
@@ -266,17 +241,5 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 10,
     fontSize: 16,
-  },
-  lockedContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F4F7F9",
-  },
-  lockedTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#003366",
-    marginTop: 20,
   },
 });

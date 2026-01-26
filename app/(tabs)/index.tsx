@@ -1,3 +1,4 @@
+import { GFSDidot_400Regular, useFonts } from "@expo-google-fonts/gfs-didot";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -5,24 +6,21 @@ import { useRouter } from "expo-router";
 import { View as MotiView } from "moti";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Dimensions,
-  Image,
-  ImageBackground,
-  Modal,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    Image,
+    ImageBackground,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
-
-// 1. Import Font Loaders
-import { GFSDidot_400Regular, useFonts } from "@expo-google-fonts/gfs-didot";
 
 const { width } = Dimensions.get("window");
 
@@ -30,15 +28,10 @@ export default function HomeScreen() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-
-  // TERMS & CONDITIONS STATES
   const [agreed, setAgreed] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
 
-  // 2. Load the GFS Didot Greek Font
-  let [fontsLoaded] = useFonts({
-    GreekFont: GFSDidot_400Regular,
-  });
+  let [fontsLoaded] = useFonts({ GreekFont: GFSDidot_400Regular });
 
   const [user, setUser] = useState({
     name: "",
@@ -66,6 +59,8 @@ export default function HomeScreen() {
         profileImage: savedImage || null,
       });
       setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
     }
   };
 
@@ -84,27 +79,16 @@ export default function HomeScreen() {
     }
   };
 
-  const validateEmail = (email: string) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
-
   const handleSignUp = async () => {
-    // Check for Agreement first
     if (!agreed) {
       Alert.alert(
         "Agreement Required",
-        "Please read and agree to the Terms & Conditions to continue.",
+        "Please agree to the Terms & Conditions.",
       );
       return;
     }
-
     if (!user.name.trim() || !user.email.trim()) {
       Alert.alert("Required", "Please enter your name and email.");
-      return;
-    }
-    if (!validateEmail(user.email)) {
-      Alert.alert("Invalid Email", "Please enter a valid email address.");
       return;
     }
 
@@ -114,21 +98,42 @@ export default function HomeScreen() {
       JSON.stringify(sessionData),
     );
     await AsyncStorage.setItem("@souvlucky_stamps", "0");
+    // Flag to trigger the welcome voucher on the rewards page
+    await AsyncStorage.setItem("@souvlucky_welcome_eligible", "true");
 
     setIsLoggedIn(true);
     setShowWelcomeModal(true);
   };
 
+  // CORRECTED RESET LOGIC
   const handleLogout = async () => {
-    await AsyncStorage.clear();
-    setIsLoggedIn(false);
-    setUser({ name: "", email: "", punches: 0, profileImage: null });
-    setAgreed(false); // Reset agreement on logout
+    try {
+      // Specifically clear all app-related keys including the welcome voucher flag
+      const keysToClear = [
+        "@souvlucky_session",
+        "@souvlucky_stamps",
+        "@profile_image",
+        "@souvlucky_welcome_eligible",
+      ];
+
+      await AsyncStorage.multiRemove(keysToClear);
+
+      // Reset local state to initial values
+      setIsLoggedIn(false);
+      setUser({ name: "", email: "", punches: 0, profileImage: null });
+      setAgreed(false);
+
+      Alert.alert(
+        "App Reset",
+        "All data cleared. You can now test the registration flow.",
+      );
+    } catch (e) {
+      Alert.alert("Error", "Failed to reset app data.");
+    }
   };
 
   if (!fontsLoaded) return null;
 
-  // --- REGISTRATION VIEW ---
   if (!isLoggedIn) {
     return (
       <SafeAreaView style={styles.authContainer}>
@@ -142,37 +147,31 @@ export default function HomeScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-
           <Text style={styles.authSub}>
             Register and get your first Gyro on us! 🌯
           </Text>
 
-          {/* NAME INPUT */}
           <TextInput
             style={styles.input}
             placeholder="Your Name"
             placeholderTextColor="#95A5A6"
-            autoComplete="name" // Android
-            textContentType="name" // iOS
+            autoComplete="name"
+            textContentType="name"
             onChangeText={(t) => setUser({ ...user, name: t })}
           />
 
-          {/* EMAIL INPUT WITH REFINED AUTOFILL */}
           <TextInput
             style={styles.input}
             placeholder="Email Address"
             placeholderTextColor="#95A5A6"
-            keyboardType="email-address" // Shows @ key
-            autoCapitalize="none" // No auto-caps
-            autoCorrect={false} // No auto-correct
-            // Refined Autofill Props
-            autoComplete="email" // Android
-            textContentType="username" // Triggers saved logins/emails on iOS
-            importantForAutofill="yes" // Android priority
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            textContentType="username"
+            importantForAutofill="yes"
             onChangeText={(t) => setUser({ ...user, email: t })}
           />
 
-          {/* TERMS & CONDITIONS CHECKBOX ROW */}
           <View style={styles.termsRow}>
             <TouchableOpacity
               style={styles.checkbox}
@@ -198,7 +197,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </ScrollView>
 
-        {/* TERMS & CONDITIONS MODAL */}
         <Modal
           visible={showTermsModal}
           animationType="slide"
@@ -212,17 +210,12 @@ export default function HomeScreen() {
               <ScrollView style={styles.legalScroll}>
                 <Text style={styles.legalText}>
                   Welcome to the SouvLucky Family! By registering, you agree to:
-                  {"\n\n"}
-                  1. Eligibility: You must provide a valid email to participate
-                  in the loyalty program.{"\n\n"}
-                  2. Rewards: The Welcome Gift (1 Free Gyro) is a one-time offer
-                  per unique user.{"\n\n"}
-                  3. Evil Eyes: Stamps are earned per qualifying purchase.
-                  SouvLucky reserves the right to verify purchases.{"\n\n"}
-                  4. Staff Verification: All rewards must be redeemed in-person
-                  and processed by a staff member.{"\n\n"}
-                  5. Privacy: Your info is used strictly for reward tracking and
-                  occasional Greek-themed marketing deals.
+                  {"\n\n"}1. Eligibility: A valid email is required.
+                  {"\n\n"}2. Rewards: The Welcome Gift is a one-time offer per
+                  user.
+                  {"\n\n"}3. Evil Eyes: Stamps are earned per qualifying
+                  purchase.
+                  {"\n\n"}4. Privacy: Data is strictly for reward tracking.
                 </Text>
               </ScrollView>
               <TouchableOpacity
@@ -238,7 +231,6 @@ export default function HomeScreen() {
     );
   }
 
-  // --- DASHBOARD VIEW ---
   return (
     <ImageBackground
       source={require("../../assets/images/table.png")}
@@ -248,6 +240,10 @@ export default function HomeScreen() {
       <View style={styles.overlay}>
         <SafeAreaView style={styles.container}>
           <StatusBar barStyle="light-content" />
+          <TouchableOpacity style={styles.debugResetBtn} onPress={handleLogout}>
+            <Ionicons name="refresh-circle" size={20} color="#FFF" />
+            <Text style={styles.debugResetText}>DEBUG: RESET APP</Text>
+          </TouchableOpacity>
           <ScrollView contentContainerStyle={styles.scrollContent}>
             <View style={styles.profileHeader}>
               <AnimatedCircularProgress
@@ -272,7 +268,7 @@ export default function HomeScreen() {
                     ) : (
                       <View style={styles.avatarCircle}>
                         <Text style={styles.avatarText}>
-                          {user.name ? user.name.charAt(0).toUpperCase() : "S"}
+                          {user.name.charAt(0).toUpperCase()}
                         </Text>
                       </View>
                     )}
@@ -282,18 +278,9 @@ export default function HomeScreen() {
                   </TouchableOpacity>
                 )}
               </AnimatedCircularProgress>
-
               <Text style={[styles.userName, { fontFamily: "GreekFont" }]}>
                 Yassas, {user.name}!
               </Text>
-
-              <View style={styles.statusBadge}>
-                <Text style={styles.memberStatus}>
-                  {user.punches === 10
-                    ? "REWARD READY 🎁"
-                    : `${user.punches}/10 EVIL EYES COLLECTED`}
-                </Text>
-              </View>
             </View>
 
             <View style={styles.dashGrid}>
@@ -315,6 +302,7 @@ export default function HomeScreen() {
                 </View>
                 <Text style={styles.cardLabel}>The Menu</Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.dashCard}
                 onPress={() => router.push("/rewards")}
@@ -336,7 +324,6 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </ScrollView>
 
-          {/* WELCOME MODAL */}
           <Modal visible={showWelcomeModal} transparent animationType="fade">
             <View style={styles.modalOverlay}>
               <MotiView
@@ -344,20 +331,15 @@ export default function HomeScreen() {
                 animate={{ scale: 1, opacity: 1 }}
                 style={styles.welcomeModalCard}
               >
-                <View style={styles.modalHeaderIcon}>
-                  <Ionicons name="sparkles" size={40} color="#003366" />
-                </View>
-
+                <Ionicons name="sparkles" size={40} color="#003366" />
                 <Text style={[styles.modalTitle, { fontFamily: "GreekFont" }]}>
                   You&apos;re in the Family!
                 </Text>
-
                 <Text style={styles.modalText}>
                   We&apos;ve dropped a{" "}
                   <Text style={{ fontWeight: "bold" }}>FREE Gyro</Text> into
-                  your rewards as a thank you for registering with us.
+                  your rewards!
                 </Text>
-
                 <View style={styles.suggestionBox}>
                   <Ionicons
                     name="information-circle-outline"
@@ -365,12 +347,9 @@ export default function HomeScreen() {
                     color="#003366"
                   />
                   <Text style={styles.suggestionText}>
-                    Check out the{" "}
-                    <Text style={{ fontWeight: "700" }}>Rewards</Text> section
-                    whenever you&apos;re ready to claim it!
+                    Check the Rewards section to claim it!
                   </Text>
                 </View>
-
                 <TouchableOpacity
                   style={styles.dismissBtn}
                   onPress={() => setShowWelcomeModal(false)}
@@ -386,6 +365,7 @@ export default function HomeScreen() {
   );
 }
 
+// ... styles remain the same
 const styles = StyleSheet.create({
   bgImage: { flex: 1 },
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)" },
@@ -401,10 +381,8 @@ const styles = StyleSheet.create({
   authSub: {
     textAlign: "center",
     color: "#7F8C8D",
-    marginTop: -10,
     marginBottom: 40,
     fontSize: 16,
-    fontWeight: "500",
   },
   input: {
     width: "100%",
@@ -414,16 +392,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 15,
     fontSize: 16,
+    color: "#2C3E50",
     borderWidth: 1,
     borderColor: "#EEE",
   },
-  termsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 20,
-    paddingHorizontal: 5,
-  },
+  termsRow: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
   checkbox: {
     width: 24,
     height: 24,
@@ -447,10 +420,8 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 10,
   },
-  primaryBtnText: { color: "#FFF", fontWeight: "900", letterSpacing: 1 },
-
+  primaryBtnText: { color: "#FFF", fontWeight: "900" },
   profileHeader: { alignItems: "center", marginTop: 60 },
   avatarWrapper: {
     width: 105,
@@ -481,24 +452,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#FFF",
   },
-  userName: { fontSize: 34, color: "#FFF", marginTop: 15, textAlign: "center" },
-  statusBadge: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginTop: 12,
-  },
-  memberStatus: {
-    color: "#FFF",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 1,
-  },
+  userName: { fontSize: 34, color: "#FFF", marginTop: 15 },
   dashGrid: {
     flexDirection: "row",
     justifyContent: "space-evenly",
-    width: "100%",
     marginTop: 40,
   },
   dashCard: {
@@ -518,26 +475,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cardLabel: { fontWeight: "700", color: "#003366", fontSize: 15 },
-  logoutBtn: { alignSelf: "center", marginTop: 60, opacity: 0.8 },
-  logoutText: {
-    color: "#FFF",
-    fontWeight: "700",
-    fontSize: 12,
-    letterSpacing: 1,
-    textDecorationLine: "underline",
-  },
-
+  logoutBtn: { alignSelf: "center", marginTop: 60 },
+  logoutText: { color: "#FFF", textDecorationLine: "underline" },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.85)",
     justifyContent: "center",
-    alignItems: "center",
-  },
-  welcomeModalCard: {
-    width: "85%",
-    backgroundColor: "#FFF",
-    borderRadius: 35,
-    padding: 30,
     alignItems: "center",
   },
   legalCard: {
@@ -551,20 +494,15 @@ const styles = StyleSheet.create({
   legalTitle: { fontSize: 24, color: "#003366", marginBottom: 15 },
   legalScroll: { width: "100%", marginBottom: 15 },
   legalText: { fontSize: 14, color: "#2C3E50", lineHeight: 20 },
-  modalHeaderIcon: { marginBottom: 15 },
-  modalTitle: {
-    fontSize: 26,
-    color: "#003366",
-    textAlign: "center",
-    marginBottom: 10,
+  welcomeModalCard: {
+    width: "85%",
+    backgroundColor: "#FFF",
+    borderRadius: 35,
+    padding: 30,
+    alignItems: "center",
   },
-  modalText: {
-    fontSize: 15,
-    color: "#2C3E50",
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 20,
-  },
+  modalTitle: { fontSize: 26, color: "#003366", marginBottom: 10 },
+  modalText: { fontSize: 15, textAlign: "center", marginBottom: 20 },
   suggestionBox: {
     flexDirection: "row",
     backgroundColor: "#F0F4F8",
@@ -573,23 +511,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 25,
   },
-  suggestionText: {
-    flex: 1,
-    fontSize: 13,
-    color: "#003366",
-    marginLeft: 10,
-  },
+  suggestionText: { flex: 1, fontSize: 13, color: "#003366", marginLeft: 10 },
   dismissBtn: {
     backgroundColor: "#003366",
     paddingVertical: 16,
     borderRadius: 20,
-    alignItems: "center",
     width: "100%",
+    alignItems: "center",
   },
-  dismissBtnText: {
+  dismissBtnText: { color: "#FFF", fontWeight: "900" },
+  debugResetBtn: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    zIndex: 999,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(231, 76, 60, 0.8)",
+    padding: 8,
+    borderRadius: 12,
+  },
+  debugResetText: {
     color: "#FFF",
+    fontSize: 10,
     fontWeight: "900",
-    fontSize: 14,
-    letterSpacing: 1,
+    marginLeft: 5,
   },
 });

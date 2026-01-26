@@ -8,7 +8,8 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  // Hook call kept for theme compatibility
+  useColorScheme();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -18,7 +19,7 @@ export default function TabLayout() {
     };
     checkStatus();
 
-    // Frequency adjusted for smoother UI response
+    // Polling status to sync login state
     const interval = setInterval(checkStatus, 500);
     return () => clearInterval(interval);
   }, []);
@@ -31,10 +32,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          // Hide the whole bar if not logged in
-          display: isLoggedIn ? "flex" : "none",
-
-          // --- IMPROVED FLOATING DESIGN ---
+          display: "flex",
           position: "absolute",
           bottom: Platform.OS === "ios" ? 30 : 20,
           left: 15,
@@ -42,15 +40,11 @@ export default function TabLayout() {
           height: 65,
           backgroundColor: "#FFFFFF",
           borderRadius: 25,
-
-          // Shadow for Depth
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.1,
           shadowRadius: 10,
           elevation: 5,
-
-          // Remove default border
           borderTopWidth: 0,
           paddingBottom: Platform.OS === "ios" ? 0 : 5,
         },
@@ -61,6 +55,7 @@ export default function TabLayout() {
         },
       }}
     >
+      {/* 1. HOME SCREEN */}
       <Tabs.Screen
         name="index"
         options={{
@@ -75,13 +70,12 @@ export default function TabLayout() {
         }}
       />
 
+      {/* 2. MENU SCREEN */}
       <Tabs.Screen
         name="explore"
         options={{
           title: "Menu",
           tabBarLabel: "Menu",
-          // Hides tab entirely from the UI if not logged in
-          tabBarButton: isLoggedIn ? HapticTab : () => null,
           tabBarIcon: ({ color, focused }) => (
             <IconSymbol
               size={26}
@@ -92,32 +86,32 @@ export default function TabLayout() {
         }}
       />
 
+      {/* 3. REWARDS SCREEN - MOVED UP */}
       <Tabs.Screen
-        name="locations"
+        name="rewards"
         options={{
-          title: "Locations",
-          tabBarLabel: "Locations",
-          tabBarButton: isLoggedIn ? HapticTab : () => null,
+          title: "Rewards",
+          tabBarLabel: "Rewards",
           tabBarIcon: ({ color, focused }) => (
             <IconSymbol
               size={26}
-              name={focused ? "map.fill" : "map"}
+              name={focused ? "gift.fill" : "gift"}
               color={color}
             />
           ),
         }}
       />
 
+      {/* 4. LOCATIONS SCREEN - NOW LAST */}
       <Tabs.Screen
-        name="rewards"
+        name="locations"
         options={{
-          title: "Rewards",
-          tabBarLabel: "Rewards",
-          tabBarButton: isLoggedIn ? HapticTab : () => null,
+          title: "Locations",
+          tabBarLabel: "Locations",
           tabBarIcon: ({ color, focused }) => (
             <IconSymbol
               size={26}
-              name={focused ? "gift.fill" : "gift"}
+              name={focused ? "map.fill" : "map"}
               color={color}
             />
           ),
