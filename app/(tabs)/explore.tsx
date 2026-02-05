@@ -304,8 +304,9 @@ export default function MenuScreen() {
 
       <View style={styles.headerContainer}>
         <Text style={[styles.mainTitle, { fontFamily: "GreekFont" }]}>
-          SouvLucky Menu
+          SOUVLUCKY
         </Text>
+        <Text style={styles.headerSubtitle}>Greek Cuisine & Rewards</Text>
         <TouchableOpacity
           style={styles.categoryPickerButton}
           onPress={() => setModalVisible(true)}
@@ -316,7 +317,7 @@ export default function MenuScreen() {
             color="#FFF"
             style={{ marginRight: 8 }}
           />
-          <Text style={styles.categoryPickerText}>BROWSE CATEGORIES</Text>
+          <Text style={styles.categoryPickerText}>MENU CATEGORIES</Text>
         </TouchableOpacity>
       </View>
 
@@ -330,10 +331,10 @@ export default function MenuScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { fontFamily: "GreekFont" }]}>
-                Categories
+                Menu Categories
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close-circle" size={28} color="#003366" />
+                <Ionicons name="close" size={28} color="#003366" />
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -404,35 +405,43 @@ export default function MenuScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F4F7F9" },
+  container: { flex: 1, backgroundColor: "#F0F4F9" },
   headerContainer: {
     paddingTop: Platform.OS === "android" ? 40 : 10,
-    backgroundColor: "#003366",
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
-    paddingBottom: 20,
+    backgroundColor: "#002347",
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    paddingBottom: 25,
     alignItems: "center",
-    elevation: 8,
+    elevation: 10,
   },
   mainTitle: {
-    fontSize: 32,
-    color: "#FFF",
+    fontSize: 34,
+    color: "#FFFFFF",
+    marginBottom: 8,
+    letterSpacing: 4,
+    fontWeight: "700",
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.8)",
     marginBottom: 15,
+    letterSpacing: 2,
   },
   categoryPickerButton: {
     flexDirection: "row",
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.25)",
   },
   categoryPickerText: {
-    color: "#FFF",
-    fontWeight: "800",
-    fontSize: 12,
-    letterSpacing: 1,
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 11,
+    letterSpacing: 1.5,
   },
   modalOverlay: {
     flex: 1,
@@ -466,37 +475,50 @@ const styles = StyleSheet.create({
   },
   modalItemText: { fontSize: 17, fontWeight: "600", color: "#2C3E50" },
   listPadding: { paddingBottom: 100 },
-  sectionHeaderContainer: { backgroundColor: "#F4F7F9", paddingVertical: 10 },
+  sectionHeaderContainer: {
+    backgroundColor: "#F0F4F9",
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+  },
   sectionHeader: {
-    fontSize: 20,
+    fontSize: 18,
     backgroundColor: "#003366",
-    color: "#FFF",
-    paddingVertical: 8,
-    paddingHorizontal: 25,
+    color: "#FFFFFF",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     alignSelf: "flex-start",
-    borderTopRightRadius: 20,
-    borderBottomRightRadius: 20,
+    borderRadius: 10,
+    fontWeight: "700",
+    letterSpacing: 2,
   },
   menuCard: {
-    backgroundColor: "#FFF",
-    marginHorizontal: "4%",
-    marginVertical: 8,
-    borderRadius: 20,
-    padding: 16,
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 15,
+    marginVertical: 10,
+    borderRadius: 15,
+    padding: 14,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    elevation: 3,
+    elevation: 2,
+    borderLeftWidth: 4,
+    borderLeftColor: "#003366",
   },
   textContainer: { flex: 1, paddingRight: 10 },
   itemName: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "700",
-    color: "#2C3E50",
+    color: "#002347",
     marginBottom: 4,
   },
-  itemDesc: { fontSize: 12, color: "#7F8C8D", lineHeight: 18, marginBottom: 8 },
-  itemPrice: { fontSize: 16, fontWeight: "800", color: "#003366" },
+  itemDesc: {
+    fontSize: 12,
+    color: "#666666",
+    lineHeight: 16,
+    marginBottom: 8,
+    fontStyle: "italic",
+  },
+  itemPrice: { fontSize: 15, fontWeight: "800", color: "#003366" },
   imageContainer: {
     width: width * 0.22,
     aspectRatio: 1,

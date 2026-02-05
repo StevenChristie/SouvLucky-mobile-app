@@ -2,7 +2,7 @@ import { GFSDidot_400Regular, useFonts } from "@expo-google-fonts/gfs-didot";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { View as MotiView } from "moti";
-import React, { memo, useCallback, useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -105,14 +105,6 @@ export default function RewardsScreen() {
     setShowQR(true);
   };
 
-  const addStamp = useCallback(async () => {
-    if (punches < totalSpots) {
-      const newCount = punches + 1;
-      setPunches(newCount);
-      await AsyncStorage.setItem("@souvlucky_stamps", newCount.toString());
-    }
-  }, [punches]);
-
   const startAnimationSequence = async () => {
     setShowQR(false);
 
@@ -138,7 +130,7 @@ export default function RewardsScreen() {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/BackGround.png")}
+      source={require("../../assets/images/BackGrond.png")}
       style={styles.backgroundImage}
       resizeMode="cover"
     >
@@ -215,8 +207,15 @@ export default function RewardsScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.debugBtn} onPress={addStamp}>
-            <Text style={styles.debugText}>[Debug] Add Stamp</Text>
+          <TouchableOpacity
+            style={styles.debugBtn}
+            onPress={() => {
+              const newCount = punches < totalSpots ? punches + 1 : punches;
+              setPunches(newCount);
+              AsyncStorage.setItem("@souvlucky_stamps", newCount.toString());
+            }}
+          >
+            <Text style={styles.debugText}>[DEBUG] Add Stamp</Text>
           </TouchableOpacity>
         </ScrollView>
 
@@ -341,13 +340,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   mainBtnText: { color: "#FFF", fontWeight: "900" },
-  debugBtn: { marginTop: 20 },
+  debugBtn: { marginTop: 20, paddingHorizontal: 20 },
   debugText: {
     color: "#FFF",
     backgroundColor: "rgba(0,0,0,0.3)",
-    padding: 5,
+    padding: 8,
     borderRadius: 5,
-    fontSize: 10,
+    fontSize: 11,
+    fontWeight: "600",
   },
   modalOverlay: {
     flex: 1,

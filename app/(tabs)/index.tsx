@@ -3,22 +3,21 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { View as MotiView } from "moti";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-    Alert,
-    Dimensions,
-    Image,
-    ImageBackground,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  Image,
+  ImageBackground,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 
@@ -40,13 +39,7 @@ export default function HomeScreen() {
     profileImage: null as string | null,
   });
 
-  useEffect(() => {
-    checkSession();
-    const interval = setInterval(checkSession, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const checkSession = async () => {
+  const checkSession = useCallback(async () => {
     const savedUser = await AsyncStorage.getItem("@souvlucky_session");
     const savedStamps = await AsyncStorage.getItem("@souvlucky_stamps");
     const savedImage = await AsyncStorage.getItem("@profile_image");
@@ -62,7 +55,11 @@ export default function HomeScreen() {
     } else {
       setIsLoggedIn(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -98,36 +95,29 @@ export default function HomeScreen() {
       JSON.stringify(sessionData),
     );
     await AsyncStorage.setItem("@souvlucky_stamps", "0");
-    // Flag to trigger the welcome voucher on the rewards page
     await AsyncStorage.setItem("@souvlucky_welcome_eligible", "true");
 
     setIsLoggedIn(true);
     setShowWelcomeModal(true);
+    router.replace("/");
   };
 
-  // CORRECTED RESET LOGIC
   const handleLogout = async () => {
     try {
-      // Specifically clear all app-related keys including the welcome voucher flag
       const keysToClear = [
         "@souvlucky_session",
         "@souvlucky_stamps",
         "@profile_image",
         "@souvlucky_welcome_eligible",
       ];
-
       await AsyncStorage.multiRemove(keysToClear);
 
-      // Reset local state to initial values
       setIsLoggedIn(false);
       setUser({ name: "", email: "", punches: 0, profileImage: null });
       setAgreed(false);
-
-      Alert.alert(
-        "App Reset",
-        "All data cleared. You can now test the registration flow.",
-      );
-    } catch (e) {
+      router.replace("/");
+      Alert.alert("App Reset", "All data cleared.");
+    } catch {
       Alert.alert("Error", "Failed to reset app data.");
     }
   };
@@ -151,24 +141,27 @@ export default function HomeScreen() {
             Register and get your first Gyro on us! 🌯
           </Text>
 
+          {/* NAME INPUT WITH AUTOFILL */}
           <TextInput
             style={styles.input}
             placeholder="Your Name"
             placeholderTextColor="#95A5A6"
-            autoComplete="name"
+            autoCapitalize="words"
             textContentType="name"
+            autoComplete="name"
             onChangeText={(t) => setUser({ ...user, name: t })}
           />
 
+          {/* EMAIL INPUT WITH AUTOFILL & SAVED PASSWORDS */}
           <TextInput
             style={styles.input}
             placeholder="Email Address"
             placeholderTextColor="#95A5A6"
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
+            textContentType="emailAddress"
             autoComplete="email"
-            textContentType="username"
-            importantForAutofill="yes"
             onChangeText={(t) => setUser({ ...user, email: t })}
           />
 
@@ -211,11 +204,8 @@ export default function HomeScreen() {
                 <Text style={styles.legalText}>
                   Welcome to the SouvLucky Family! By registering, you agree to:
                   {"\n\n"}1. Eligibility: A valid email is required.
-                  {"\n\n"}2. Rewards: The Welcome Gift is a one-time offer per
-                  user.
-                  {"\n\n"}3. Evil Eyes: Stamps are earned per qualifying
-                  purchase.
-                  {"\n\n"}4. Privacy: Data is strictly for reward tracking.
+                  {"\n\n"}2. Rewards: The Welcome Gift is a one-time offer.
+                  {"\n\n"}3. Privacy: Data is strictly for reward tracking.
                 </Text>
               </ScrollView>
               <TouchableOpacity
@@ -268,7 +258,7 @@ export default function HomeScreen() {
                     ) : (
                       <View style={styles.avatarCircle}>
                         <Text style={styles.avatarText}>
-                          {user.name.charAt(0).toUpperCase()}
+                          {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                         </Text>
                       </View>
                     )}
@@ -326,11 +316,7 @@ export default function HomeScreen() {
 
           <Modal visible={showWelcomeModal} transparent animationType="fade">
             <View style={styles.modalOverlay}>
-              <MotiView
-                from={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                style={styles.welcomeModalCard}
-              >
+              <View style={styles.welcomeModalCard}>
                 <Ionicons name="sparkles" size={40} color="#003366" />
                 <Text style={[styles.modalTitle, { fontFamily: "GreekFont" }]}>
                   You&apos;re in the Family!
@@ -340,23 +326,13 @@ export default function HomeScreen() {
                   <Text style={{ fontWeight: "bold" }}>FREE Gyro</Text> into
                   your rewards!
                 </Text>
-                <View style={styles.suggestionBox}>
-                  <Ionicons
-                    name="information-circle-outline"
-                    size={20}
-                    color="#003366"
-                  />
-                  <Text style={styles.suggestionText}>
-                    Check the Rewards section to claim it!
-                  </Text>
-                </View>
                 <TouchableOpacity
                   style={styles.dismissBtn}
                   onPress={() => setShowWelcomeModal(false)}
                 >
                   <Text style={styles.dismissBtnText}>GOT IT!</Text>
                 </TouchableOpacity>
-              </MotiView>
+              </View>
             </View>
           </Modal>
         </SafeAreaView>
@@ -365,12 +341,11 @@ export default function HomeScreen() {
   );
 }
 
-// ... styles remain the same
 const styles = StyleSheet.create({
   bgImage: { flex: 1 },
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)" },
   container: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingBottom: 40 },
+  scrollContent: { flexGrow: 1, paddingBottom: 120 },
   authContainer: { flex: 1, backgroundColor: "#FFF" },
   authScroll: {
     alignItems: "center",
@@ -503,15 +478,6 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontSize: 26, color: "#003366", marginBottom: 10 },
   modalText: { fontSize: 15, textAlign: "center", marginBottom: 20 },
-  suggestionBox: {
-    flexDirection: "row",
-    backgroundColor: "#F0F4F8",
-    padding: 15,
-    borderRadius: 15,
-    alignItems: "center",
-    marginBottom: 25,
-  },
-  suggestionText: { flex: 1, fontSize: 13, color: "#003366", marginLeft: 10 },
   dismissBtn: {
     backgroundColor: "#003366",
     paddingVertical: 16,

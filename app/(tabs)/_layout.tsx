@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Tabs } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { Tabs, useSegments } from "expo-router"; // Changed useRoute to useSegments
+import React, { useCallback, useEffect, useState } from "react";
 import { Platform } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
@@ -8,54 +8,63 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export default function TabLayout() {
-  // Hook call kept for theme compatibility
   useColorScheme();
+
+  // Initialize as false so the nav bar is hidden by default for new users
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const segments = useSegments();
+
+  // Wrapped in useCallback to fix the ESLint missing dependency warning
+  const checkLogin = useCallback(async () => {
+    const savedUser = await AsyncStorage.getItem("@souvlucky_session");
+    setIsLoggedIn(!!savedUser);
+  }, []);
 
   useEffect(() => {
-    const checkStatus = async () => {
-      const savedUser = await AsyncStorage.getItem("@souvlucky_session");
-      setIsLoggedIn(!!savedUser);
-    };
-    checkStatus();
+    checkLogin();
+    // Poll to catch state changes from the index page
+    const unsubscribe = setInterval(checkLogin, 500);
+    return () => clearInterval(unsubscribe);
+  }, [checkLogin]); // Added checkLogin as dependency
 
-    // Polling status to sync login state
-    const interval = setInterval(checkStatus, 500);
-    return () => clearInterval(interval);
-  }, []);
+  // Determine if we are on the index page.
+  // Segments for (tabs)/index.tsx will typically look like ["(tabs)"] or ["(tabs)", "index"]
+  const isHomeScreen =
+    segments.length <= 1 || segments[segments.length - 1] === "index";
+  const shouldHideNavBar = !isLoggedIn && isHomeScreen;
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#003366", // SouvLucky Navy
-        tabBarInactiveTintColor: "#95A5A6",
+        tabBarActiveTintColor: "#FFFFFF",
+        tabBarInactiveTintColor: "#B0C4DE",
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          display: "flex",
+          // Dynamic display property
+          display: shouldHideNavBar ? "none" : "flex",
           position: "absolute",
           bottom: Platform.OS === "ios" ? 30 : 20,
-          left: 15,
-          right: 15,
-          height: 65,
-          backgroundColor: "#FFFFFF",
-          borderRadius: 25,
+          left: 20,
+          right: 20,
+          height: 70,
+          backgroundColor: "#003366",
+          borderRadius: 20,
           shadowColor: "#000",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.1,
-          shadowRadius: 10,
-          elevation: 5,
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.12,
+          shadowRadius: 16,
+          elevation: 8,
           borderTopWidth: 0,
-          paddingBottom: Platform.OS === "ios" ? 0 : 5,
+          paddingBottom: Platform.OS === "ios" ? 0 : 8,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "700",
-          marginBottom: 5,
+          fontSize: 12,
+          fontWeight: "600",
+          marginBottom: 4,
         },
       }}
     >
-      {/* 1. HOME SCREEN */}
       <Tabs.Screen
         name="index"
         options={{
@@ -69,8 +78,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
-      {/* 2. MENU SCREEN */}
       <Tabs.Screen
         name="explore"
         options={{
@@ -85,8 +92,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
-      {/* 3. REWARDS SCREEN - MOVED UP */}
       <Tabs.Screen
         name="rewards"
         options={{
@@ -101,8 +106,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
-      {/* 4. LOCATIONS SCREEN - NOW LAST */}
       <Tabs.Screen
         name="locations"
         options={{
