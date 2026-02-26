@@ -1,14 +1,14 @@
+import { locationsStyles as styles } from "@/styles/styles";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  Linking,
-  Platform,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Linking,
+    Platform,
+    SafeAreaView,
+    StatusBar,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
@@ -153,93 +153,3 @@ export default function LocationsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  map: { ...StyleSheet.absoluteFillObject },
-  markerContainer: {
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  overlayTop: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 50 : 30,
-    width: "100%",
-    alignItems: "center",
-  },
-  tabBar: {
-    flexDirection: "row",
-    backgroundColor: "#FFF",
-    borderRadius: 12,
-    padding: 4,
-    elevation: 5,
-  },
-  tab: {
-    paddingHorizontal: 25,
-    paddingVertical: 10,
-    borderRadius: 10,
-    minWidth: 140,
-    alignItems: "center",
-  },
-  activeTab: { backgroundColor: "#003366" }, // Updated to Navy
-  inactiveTab: { backgroundColor: "transparent" },
-  tabText: { fontWeight: "800", fontSize: 13 },
-  activeTabText: { color: "#FFF" },
-  inactiveTabText: { color: "#555" },
-  overlayBottom: { position: "absolute", width: "100%", paddingHorizontal: 16 },
-  card: {
-    backgroundColor: "#FFF",
-    borderRadius: 24,
-    padding: 20,
-    elevation: 10,
-    shadowOpacity: 0.15,
-  },
-  branchName: {
-    fontSize: 22,
-    fontWeight: "900",
-    color: "#003366",
-    marginBottom: 2,
-  },
-  statusOpen: {
-    color: "#27ae60",
-    fontWeight: "bold",
-    fontSize: 11,
-    textTransform: "uppercase",
-    marginBottom: 12,
-  },
-  statusWeekend: {
-    color: "#e67e22",
-    fontWeight: "bold",
-    fontSize: 11,
-    textTransform: "uppercase",
-    marginBottom: 12,
-  },
-  infoRow: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
-  infoText: {
-    fontSize: 14,
-    color: "#444",
-    marginLeft: 10,
-    flexShrink: 1,
-    fontWeight: "500",
-  },
-  buttonContainer: { marginTop: 15 },
-  fullButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: 14,
-    width: "100%",
-    marginBottom: 10,
-  },
-  directionsButton: { backgroundColor: "#7B8DFF" },
-  callButton: { backgroundColor: "#003366", marginBottom: 0 },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    marginLeft: 10,
-    fontSize: 16,
-  },
-});

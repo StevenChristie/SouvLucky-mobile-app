@@ -4,17 +4,16 @@ import {
   Dimensions,
   Image,
   Modal,
-  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
-  StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 // 1. Font Loaders
+import { exploreStyles as styles } from "@/styles/styles";
 import { GFSDidot_400Regular, useFonts } from "@expo-google-fonts/gfs-didot";
 
 const { width } = Dimensions.get("window");
@@ -403,128 +402,3 @@ export default function MenuScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F0F4F9" },
-  headerContainer: {
-    paddingTop: Platform.OS === "android" ? 40 : 10,
-    backgroundColor: "#002347",
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    paddingBottom: 25,
-    alignItems: "center",
-    elevation: 10,
-  },
-  mainTitle: {
-    fontSize: 34,
-    color: "#FFFFFF",
-    marginBottom: 8,
-    letterSpacing: 4,
-    fontWeight: "700",
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "rgba(255, 255, 255, 0.8)",
-    marginBottom: 15,
-    letterSpacing: 2,
-  },
-  categoryPickerButton: {
-    flexDirection: "row",
-    backgroundColor: "rgba(255,255,255,0.15)",
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.25)",
-  },
-  categoryPickerText: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-    fontSize: 11,
-    letterSpacing: 1.5,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    height: "70%",
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: 25,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#EEE",
-    paddingBottom: 15,
-  },
-  modalTitle: { fontSize: 28, color: "#003366" },
-  modalItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F5F5F5",
-  },
-  modalItemText: { fontSize: 17, fontWeight: "600", color: "#2C3E50" },
-  listPadding: { paddingBottom: 100 },
-  sectionHeaderContainer: {
-    backgroundColor: "#F0F4F9",
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-  },
-  sectionHeader: {
-    fontSize: 18,
-    backgroundColor: "#003366",
-    color: "#FFFFFF",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignSelf: "flex-start",
-    borderRadius: 10,
-    fontWeight: "700",
-    letterSpacing: 2,
-  },
-  menuCard: {
-    backgroundColor: "#FFFFFF",
-    marginHorizontal: 15,
-    marginVertical: 10,
-    borderRadius: 15,
-    padding: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    elevation: 2,
-    borderLeftWidth: 4,
-    borderLeftColor: "#003366",
-  },
-  textContainer: { flex: 1, paddingRight: 10 },
-  itemName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#002347",
-    marginBottom: 4,
-  },
-  itemDesc: {
-    fontSize: 12,
-    color: "#666666",
-    lineHeight: 16,
-    marginBottom: 8,
-    fontStyle: "italic",
-  },
-  itemPrice: { fontSize: 15, fontWeight: "800", color: "#003366" },
-  imageContainer: {
-    width: width * 0.22,
-    aspectRatio: 1,
-    borderRadius: 15,
-    overflow: "hidden",
-    backgroundColor: "#F0F4F8",
-  },
-  foodImage: { width: "100%", height: "100%" },
-});

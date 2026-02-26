@@ -2,20 +2,24 @@ import { GFSDidot_400Regular, useFonts } from "@expo-google-fonts/gfs-didot";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { View as MotiView } from "moti";
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
   FlatList,
-  ImageBackground,
   Modal,
-  SafeAreaView,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import "react-native-reanimated";
+
+// Imports for Blog & Video
+import { rewardsStyles as styles } from "@/styles/styles";
+import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import YoutubePlayer from "react-native-youtube-iframe";
 
 const { width } = Dimensions.get("window");
 
@@ -78,6 +82,9 @@ export default function RewardsScreen() {
   const [eyeState, setEyeState] = useState<EyeState>("idle");
   const totalSpots = 10;
 
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = useMemo(() => ["8%", "50%", "95%"], []);
+
   let [fontsLoaded] = useFonts({ GreekFont: GFSDidot_400Regular });
 
   const loadData = async () => {
@@ -86,7 +93,6 @@ export default function RewardsScreen() {
       const welcomeEligible = await AsyncStorage.getItem(
         "@souvlucky_welcome_eligible",
       );
-
       if (savedStamps) setPunches(parseInt(savedStamps));
       setIsWelcomeEligible(welcomeEligible === "true");
     } catch (e) {
@@ -107,7 +113,6 @@ export default function RewardsScreen() {
 
   const startAnimationSequence = async () => {
     setShowQR(false);
-
     if (redeemingType === "welcome") {
       await AsyncStorage.setItem("@souvlucky_welcome_eligible", "false");
       setIsWelcomeEligible(false);
@@ -129,12 +134,8 @@ export default function RewardsScreen() {
   if (!fontsLoaded) return null;
 
   return (
-    <ImageBackground
-      source={require("../../assets/images/BackGrond.png")}
-      style={styles.backgroundImage}
-      resizeMode="cover"
-    >
-      <SafeAreaView style={styles.safeArea}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
             <Text style={[styles.headerTitle, { fontFamily: "GreekFont" }]}>
@@ -219,6 +220,47 @@ export default function RewardsScreen() {
           </TouchableOpacity>
         </ScrollView>
 
+        {/* BLOG DRAWER SECTION */}
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={0}
+          snapPoints={snapPoints}
+          handleIndicatorStyle={{ backgroundColor: "#FFF" }}
+          backgroundStyle={{ backgroundColor: "#000" }}
+        >
+          <View style={styles.blogHandleArea}>
+            <Ionicons name="chevron-up" size={20} color="#FFF" />
+            <Text style={styles.blogHandleText}>SCROLL FOR BLOG FEATURES</Text>
+          </View>
+
+          <BottomSheetScrollView
+            contentContainerStyle={styles.blogScrollContent}
+          >
+            <Text
+              style={[styles.blogSectionTitle, { fontFamily: "GreekFont" }]}
+            >
+              The SouvLucky Blog
+            </Text>
+
+            <View style={styles.postCard}>
+              <Text style={styles.postTitle}>Our New Souvlaki Process</Text>
+              <View style={styles.videoWrapper}>
+                <YoutubePlayer
+                  height={(width - 70) * (9 / 16)}
+                  play={false}
+                  videoId={"jBvCgXWPNPA"}
+                />
+              </View>
+              <Text style={styles.postText}>
+                Opa! Watch how we prepare the freshest ingredients for your
+                favorite Greek meals. Quality is at the heart of every SouvLucky
+                wrap.
+              </Text>
+            </View>
+          </BottomSheetScrollView>
+        </BottomSheet>
+
+        {/* REDEMPTION MODAL */}
         <Modal visible={showQR} animationType="fade" transparent={true}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
@@ -239,143 +281,7 @@ export default function RewardsScreen() {
             </View>
           </View>
         </Modal>
-      </SafeAreaView>
-    </ImageBackground>
+      </View>
+    </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  backgroundImage: { flex: 1 },
-  safeArea: { flex: 1 },
-  scrollContent: { alignItems: "center", paddingBottom: 100 },
-  header: {
-    backgroundColor: "rgba(0, 51, 102, 0.85)",
-    width: "100%",
-    paddingVertical: 40,
-    alignItems: "center",
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-  },
-  headerTitle: { fontSize: 28, color: "#FFF" },
-  headerSub: { fontSize: 15, color: "rgba(255,255,255,0.7)", marginTop: 5 },
-  welcomeCard: {
-    backgroundColor: "#FFF",
-    width: width * 0.9,
-    borderRadius: 15,
-    padding: 20,
-    marginTop: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderLeftWidth: 5,
-    borderLeftColor: "#E67E22",
-  },
-  welcomeInfo: { flexDirection: "row", alignItems: "center" },
-  welcomeTitle: { fontWeight: "900", color: "#003366" },
-  welcomeSub: { color: "#7F8C8D", fontSize: 12 },
-  welcomeBtn: { backgroundColor: "#E67E22", padding: 10, borderRadius: 8 },
-  welcomeBtnText: { color: "#FFF", fontWeight: "900", fontSize: 12 },
-  cardContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    width: width * 0.94,
-    borderRadius: 25,
-    padding: 20,
-    marginTop: 20,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#003366",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  eyeRow: { justifyContent: "space-around", marginBottom: 15 },
-  eyeWrapper: { width: width * 0.15, height: width * 0.15 },
-  emptyEye: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 100,
-    backgroundColor: "rgba(0,0,0,0.05)",
-    justifyContent: "center",
-    alignItems: "center",
-    borderStyle: "dashed",
-    borderWidth: 1,
-    borderColor: "#ccc",
-  },
-  eyePupilEmpty: {
-    width: "30%",
-    height: "30%",
-    borderRadius: 100,
-    backgroundColor: "#eee",
-  },
-  filledEye: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 100,
-    backgroundColor: "#0056b3",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  eyeWhite: {
-    width: "60%",
-    height: "60%",
-    borderRadius: 100,
-    backgroundColor: "#FFF",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  eyePupil: {
-    width: "45%",
-    height: "45%",
-    borderRadius: 100,
-    backgroundColor: "#00bfff",
-  },
-  mainBtn: {
-    flexDirection: "row",
-    width: "90%",
-    padding: 18,
-    borderRadius: 15,
-    marginTop: 30,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  mainBtnText: { color: "#FFF", fontWeight: "900" },
-  debugBtn: { marginTop: 20, paddingHorizontal: 20 },
-  debugText: {
-    color: "#FFF",
-    backgroundColor: "rgba(0,0,0,0.3)",
-    padding: 8,
-    borderRadius: 5,
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.8)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#FFF",
-    width: "80%",
-    padding: 30,
-    borderRadius: 25,
-    alignItems: "center",
-  },
-  closeBtn: { alignSelf: "flex-end" },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "900",
-    color: "#003366",
-    marginBottom: 20,
-  },
-  finishBtn: {
-    marginTop: 20,
-    backgroundColor: "#003366",
-    padding: 15,
-    borderRadius: 12,
-    width: "100%",
-    alignItems: "center",
-  },
-  finishBtnText: { color: "#FFF", fontWeight: "900" },
-});
