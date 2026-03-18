@@ -43,20 +43,18 @@ export default function TabLayout() {
         tabBarStyle: {
           // Dynamic display property
           display: shouldHideNavBar ? "none" : "flex",
-          position: "absolute",
-          bottom: Platform.OS === "ios" ? 30 : 20,
-          left: 20,
-          right: 20,
+          // Keep the tab bar flush with the bottom edge so it doesn't overlap content.
+          position: "relative",
           height: 70,
           backgroundColor: "#003366",
-          borderRadius: 20,
+          borderRadius: 0,
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 8 },
           shadowOpacity: 0.12,
           shadowRadius: 16,
           elevation: 8,
           borderTopWidth: 0,
-          paddingBottom: Platform.OS === "ios" ? 0 : 8,
+          paddingBottom: Platform.OS === "ios" ? 20 : 8,
         },
         tabBarLabelStyle: {
           fontSize: 12,

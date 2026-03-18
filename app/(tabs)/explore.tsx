@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
 import {
-  Dimensions,
   Image,
   Modal,
   SafeAreaView,
@@ -9,14 +8,12 @@ import {
   StatusBar,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 // 1. Font Loaders
 import { exploreStyles as styles } from "@/styles/styles";
 import { GFSDidot_400Regular, useFonts } from "@expo-google-fonts/gfs-didot";
-
-const { width } = Dimensions.get("window");
 
 // 2. FULL MENU DATA
 const MENU_DATA = [
@@ -301,27 +298,28 @@ export default function MenuScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
 
+      {/* HEADER SECTION */}
       <View style={styles.headerContainer}>
         <Text style={[styles.mainTitle, { fontFamily: "GreekFont" }]}>
           SOUVLUCKY
         </Text>
-        <Text style={styles.headerSubtitle}>Greek Cuisine & Rewards</Text>
         <TouchableOpacity
           style={styles.categoryPickerButton}
           onPress={() => setModalVisible(true)}
         >
           <Ionicons
-            name="grid-outline"
+            name="options-outline"
             size={18}
-            color="#FFF"
-            style={{ marginRight: 8 }}
+            color="#C5A059"
+            style={{ marginRight: 10 }}
           />
-          <Text style={styles.categoryPickerText}>MENU CATEGORIES</Text>
+          <Text style={styles.categoryPickerText}>SELECT CATEGORY</Text>
         </TouchableOpacity>
       </View>
 
+      {/* DARK THEME MODAL */}
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
@@ -330,10 +328,10 @@ export default function MenuScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { fontFamily: "GreekFont" }]}>
-                Menu Categories
+                Menu
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={28} color="#003366" />
+                <Ionicons name="close" size={24} color="#FFF" />
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -344,12 +342,6 @@ export default function MenuScreen() {
                   onPress={() => scrollToSection(section.title)}
                 >
                   <Text style={styles.modalItemText}>{section.title}</Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={16}
-                    color="#003366"
-                    opacity={0.3}
-                  />
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -357,8 +349,10 @@ export default function MenuScreen() {
         </View>
       </Modal>
 
+      {/* MAIN CONTENT */}
       <ScrollView
         ref={mainScrollRef}
+        style={styles.scroll}
         contentContainerStyle={styles.listPadding}
         showsVerticalScrollIndicator={false}
       >
@@ -370,10 +364,13 @@ export default function MenuScreen() {
                 event.nativeEvent.layout.y;
             }}
           >
+            {/* SECTION HEADER WITH LINES */}
             <View style={styles.sectionHeaderContainer}>
+              <View style={styles.sectionHeaderLine} />
               <Text style={[styles.sectionHeader, { fontFamily: "GreekFont" }]}>
                 {section.title}
               </Text>
+              <View style={styles.sectionHeaderLine} />
             </View>
 
             {section.data.map((item, index) => (
@@ -390,7 +387,7 @@ export default function MenuScreen() {
                     <Image
                       source={item.image}
                       style={styles.foodImage}
-                      resizeMode="contain"
+                      resizeMode="cover"
                     />
                   </View>
                 )}

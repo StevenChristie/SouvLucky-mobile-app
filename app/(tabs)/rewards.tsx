@@ -85,7 +85,8 @@ export default function RewardsScreen() {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ["8%", "50%", "95%"], []);
 
-  let [fontsLoaded] = useFonts({ GreekFont: GFSDidot_400Regular });
+  const [fontsLoaded] = useFonts({ GreekFont: GFSDidot_400Regular });
+  const greekFont = fontsLoaded ? "GreekFont" : undefined;
 
   const loadData = async () => {
     try {
@@ -131,14 +132,12 @@ export default function RewardsScreen() {
     }
   };
 
-  if (!fontsLoaded) return null;
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
-            <Text style={[styles.headerTitle, { fontFamily: "GreekFont" }]}>
+            <Text style={[styles.headerTitle, { fontFamily: greekFont }]}>
               SouvLucky Rewards
             </Text>
             <Text style={styles.headerSub}>
