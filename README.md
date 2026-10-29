@@ -1,53 +1,77 @@
-# SouvLucky Mobile App 🌯
+# SouvLucky Mobile App 🧿
 
-### **Overview**
-The **SouvLucky Mobile App** is a premium loyalty and digital menu solution designed to enhance the customer experience. Built with a focus on performance and a high-end "Family" aesthetic, the app integrates a digital stamp system, an interactive menu, and secure customer onboarding.
+The loyalty and digital-menu app for **SouvLucky Greek Kitchen** (Parkmore & Prison Break Market, Johannesburg).
+Built with Expo SDK 58, Expo Router and Reanimated 4.
 
----
+## Run it
 
-### **🚀 Key Features**
+```bash
+npm install
+npx expo start
+```
 
-#### **1. Customer Authentication & Onboarding**
-* **Custom Registration Flow**: A tailored sign-up interface that captures user details and validates sessions.
-* **Legal Acceptance**: An integrated **Terms & Conditions** modal that ensures users agree to the loyalty program rules before joining.
-* **Welcome Gift Logic**: New users are automatically flagged to receive a **Free Gyro** upon their first successful registration.
+Scan the QR code with **Expo Go** (iOS or Android). Press `w` for the web version.
 
-#### **2. Digital Loyalty System ("The Evil Eye")**
-* **Interactive Card**: A digital 10-stamp loyalty card where users collect "Evil Eyes" instead of traditional paper stamps.
-* **Smooth Animations**: Utilizing **Moti** for high-performance scale and fade transitions when stamps are added.
-* **Instant Feedback**: Optimistic UI updates ensure that clicking a stamp feels instantaneous while the data syncs in the background.
-* **Celebration Module**: Integrated confetti effects that trigger automatically upon card completion.
+Useful scripts: `npm run typecheck`, `npm run lint`.
 
-#### **3. Interactive Digital Menu**
-* **Categorized Browsing**: The full menu is organized into logical sections (Gyros, Meze, Platters, etc.).
-* **Category Quick-Jump**: A custom slide-up modal that allows users to snap directly to specific menu sections using coordinate-based scrolling.
-* **Visual Menu**: Support for high-fidelity images and detailed descriptions for every item.
+## Features
 
-#### **4. Redemption & Staff Security**
-* **Staff-Verified Redemption**: A secure modal system designed for staff members to process free meals in-person.
-* **QR Integration**: Generates unique QR codes for seamless scanning at the point of sale.
+| Area | What it does |
+| --- | --- |
+| **Video splash** | `assets/video/splash.mp4` plays on launch, hands off seamlessly from the native splash, can be tapped to skip, and has a 6-second safety cap. |
+| **Accounts** | Join or sign in with email; customers receive a 6-digit code (no passwords). Sign-up asks for name, optional birthday (day/month) and a separate marketing opt-in. |
+| **Home** | Greeting, loyalty progress, News & events, popular dishes, Order on Uber Eats, branch open/closed status, Instagram and TikTok. |
+| **News & events** | Posts written in Supabase appear in the app immediately. |
+| **Menu** | Search, "Saved" favourites, sticky category chips, a detail sheet per dish. |
+| **Rewards** | The Evil Eye card (10 stamps → free gyro), welcome gyro, birthday baklava, confetti, live updates while the customer waits. |
+| **Member pass** | A QR code that refreshes every 50 s; staff scan it to stamp or redeem. |
+| **Staff scanner** | Staff-only screen: scan a pass, add a stamp, redeem rewards. Rules are enforced in the database. |
+| **Account** | Add a birthday (once), email opt-in/out, socials, sign out, delete account. |
+| **Visit** | Map, swipeable branch cards, directions, call, Uber Eats. |
 
----
+## Backend (Supabase)
 
-### **🛠️ Technical Architecture**
+Project: `uklodhqpzdyrflrdqocf` (Europe). Connection settings live in `.env` (public values only — never add the `service_role` key).
 
-#### **Frontend (Mobile)**
-* **Framework**: **React Native** via **Expo**.
-* **Routing**: **Expo Router** (File-based navigation).
-* **Animations**: **Moti** and **Reanimated 2**.
-* **Storage**: **AsyncStorage** for persistent local sessions and stamp tracking.
-* **Typography**: Integrated **GFS Didot** Google Font for an authentic Greek aesthetic.
+**Set up once:** run [`supabase/schema.sql`](supabase/schema.sql) in Supabase → SQL Editor. It creates the tables, security rules, staff functions, the daily birthday job (06:00 SAST) and push notifications.
 
-#### **Backend**
-* **Engine**: **Java Spring Boot**.
-* **Functionality**: Manages user data, transaction history, and secure reward validation.
+**Rules** (constants in `schema.sql`): 10 stamps per card · one stamp per customer every 2 hours · welcome gift = Free Gyro · birthday = Free Baklava with any purchase, valid 7 days.
 
----
+### Day-to-day
 
-### **📂 Project Structure & Logic**
+- **Make someone staff:** they sign up in the app, then run
+  `update profiles set is_staff = true where email = 'name@example.com';`
+  Staff see "Staff: scan a customer" on the Rewards tab. Set it back to `false` when they leave.
+- **Post news or an event:** Table Editor → `posts` → Insert row. For a photo, upload it to Storage → `posts`, copy its public URL into `image_url`. Tick `notify` to send a push notification to everyone.
+- **Email list:** run
+  `select name, email from profiles where marketing_opt_in order by created_at;`
+  and export to CSV (or connect a mailing tool). Only email people who opted in, and always include an unsubscribe link.
+- **See activity:** `stamp_events` (who stamped whom, where, when) and `rewards` (issued and redeemed).
 
-* **`app/(tabs)/index.tsx`**: The main entry point handling user authentication, profile management, and the central dashboard.
-* **`app/(tabs)/rewards.tsx`**: The core loyalty engine. It uses **memoized components** to efficiently render the stamp grid and manage redemption states.
-* **`app/(tabs)/explore.tsx`**: The menu engine. It utilizes `useRef` to track section positions for smooth, programmatic scrolling.
-* **`assets/`**: Centralized storage for branding assets, high-resolution food photography, and custom UI textures.
+## Project structure
 
+```
+src/
+  app/                    Expo Router routes
+    _layout.tsx           fonts, session, auth guards (Stack.Protected), video splash, notification taps
+    welcome.tsx           join / sign in
+    verify.tsx            6-digit email code
+    redeem.tsx            member pass (rotating QR)
+    staff.tsx             staff scanner
+    account.tsx           profile, birthday, email preferences, delete account
+    news/[id].tsx         post detail
+    menu/[id].tsx         dish detail
+    (tabs)/               Home · Menu · Rewards · Visit
+  components/             UI building blocks (brand/, menu/, news/, ui/)
+  data/                   menu, branches (hours, Uber Eats links), socials
+  lib/                    supabase client, session store, news, push notifications
+  theme/                  colours, type and spacing sampled from the splash video
+supabase/schema.sql       the whole backend
+```
+
+## Editing content
+
+- **Menu:** `src/data/menu.ts` (prices in Rand; `veg` / `popular` flags).
+- **Branches, hours & Uber Eats links:** `src/data/locations.ts`.
+- **Instagram / TikTok:** `src/data/socials.ts`.
+- **Colours & fonts:** `src/theme/index.ts`.
